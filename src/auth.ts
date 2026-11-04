@@ -2,7 +2,7 @@ import type { DevUser } from "./config.js";
 
 // Who's signed in. Where there's no real sign-in, as on the local host, a developer picks a user and
 // the shell makes an unsigned token with the claims Cognito's would have, which only the local host
-// accepts. Real sign-in comes when the shell is hosted on AWS.
+// accepts. Elsewhere, people sign in with the environment's identity provider; see oidc.ts.
 
 const storageKey = "featurewise.user";
 
@@ -16,6 +16,11 @@ export interface Auth {
   // The users a developer can switch to, or empty where there's real sign-in.
   users(): DevUser[];
   signInAs(user: DevUser): void;
+  // Real sign-in only: goes to the identity provider's sign-in page, to come back to returnTo.
+  signIn?(returnTo: string): Promise<void>;
+  // Real sign-in only: finishes signing in when the provider sends the user back to the shell's
+  // callback page with the given query string, and says where to go next.
+  completeSignIn?(search: string): Promise<string>;
   signOut(): void;
   onChange(listener: () => void): void;
 }

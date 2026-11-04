@@ -8,6 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm install
 npm run build      # tsc to dist/, then copies static/ (index.html, shell.css)
 npm test           # tsc -p test (type-checks the tests), then vitest run
+./package.sh <version> out   # the package: Infrastructure/ and the built dist/
 ```
 
 A change is done when the build is clean and `npm test` passes. For a behaviour change, temporarily remove the new code to confirm its test fails.
@@ -20,7 +21,8 @@ The Featurewise UI shell. `README.md` explains how it behaves, and `../book/code
 - `src/contract.ts` is the contract with modules, and must stay free of any framework. Modules never invoke: the shell does all invoking, in `src/bff.ts`, the only place that knows the backend's URLs and headers.
 - `src/shell.ts` is the core: addresses to links and back, GET to load an address and POST to follow a link, problems handled by the shell, results rendered by the module or `src/generic.ts`.
 - The shell's own UI is web components with shadow DOM (`src/pill.ts`), so modules' styles and the shell's can't leak into each other. Its pages are under `/_shell/`, and `services.json` may not name a service starting with `_`.
-- Signing in is `src/auth.ts`. Only the dev sign-in exists so far: unsigned tokens for the users in `services.json`'s `devUsers`, which only a local host accepts.
+- Signing in is `src/auth.ts` (the dev sign-in: unsigned tokens for `services.json`'s `devUsers`, which only a local host accepts) and `src/oidc.ts` (real sign-in: any OpenID Connect provider, by the authorization code flow with PKCE, finished at `/_shell/callback`). The shell never mentions Cognito: the environment owns the identity provider and passes its endpoints in.
+- `Infrastructure/` is the Terraform module an environment uses from the package `package.sh` builds: a bucket and one CloudFront distribution for the shell, `services.json` and every service's UI backend under `/api/<id>/`. Check it with `terraform fmt -check -recursive .` and `terraform init -backend=false && terraform validate` in `Infrastructure`. Never `plan` or `apply` against AWS unasked.
 
 ## Tests
 

@@ -47,6 +47,19 @@ describe("the pill", () => {
     expect(opened).toBe(true);
   });
 
+  it("goes straight to the provider to sign in, where sign-in is real", () => {
+    const wentFrom: string[] = [];
+    const auth = { ...devAuth([]), signIn: async (returnTo: string) => { wentFrom.push(returnTo); } };
+    history.replaceState(null, "", "/sample/things");
+    const element = document.createElement("featurewise-pill") as Pill;
+    document.body.append(element);
+    element.attach(auth, () => {});
+
+    [...element.shadowRoot!.querySelectorAll("button")].find(b => b.textContent === "Sign in")!.click();
+
+    expect(wentFrom).toEqual(["/sample/things"]);
+  });
+
   it("keeps its styles in its shadow root", () => {
     const { element } = pill();
 

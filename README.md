@@ -36,7 +36,20 @@ The shell reads `services.json` from its own origin:
 }
 ```
 
-`devUsers` is only for where there's no real sign-in, such as a service's local host: the pill offers those users, and the shell signs in as one with an unsigned token carrying the claims Cognito's would, which only a local host accepts. Real sign-in comes with hosting the shell on AWS.
+`devUsers` is only for where there's no real sign-in, such as a service's local host: the pill offers those users, and the shell signs in as one with an unsigned token carrying the claims Cognito's would, which only a local host accepts.
+
+Where people sign in for real, `services.json` has `signIn` instead: an OpenID Connect provider's `authorizeUrl`, `tokenUrl` and `logoutUrl`, and the shell's `clientId`, which has no secret. Sign in sends the user to the provider's own sign-in page, such as a Cognito user pool's managed login, by the authorization code flow with PKCE. The provider sends them back to `/_shell/callback`, where the shell trades the code for tokens, keeps them for the tab's session, and returns to the page they were on. The shell sends the access token to every backend. Log out clears the tokens and goes to the `logoutUrl`, which includes whatever the provider needs, such as Cognito's `client_id` and `logout_uri`.
+
+## Hosting on AWS
+
+`Infrastructure/` is the shell's Terraform module, with no provider or state of its own. An environment uses it from the shell's package, beside its services, and gives it each service's UI backend URL, the default address and its identity provider's settings. It makes:
+
+- a private S3 bucket for the shell's files, `services.json`, which it writes from those inputs, and each service's module, which the service uploads under `modules/<id>/`;
+- one CloudFront distribution that serves them, and routes `/api/<id>/*` to each service's UI backend with the prefix taken off and nothing cached, so the browser only ever talks to one origin. A CloudFront function sends any address that isn't a file to `index.html`.
+
+Its outputs are the shell's `url`, the `callback_url` the identity provider's client must allow, and the `bucket` services upload their modules to.
+
+`package.sh <version> <out-dir>` builds the package, `ui-<version>.zip`: the module and the built shell beside it. CI builds, tests, checks the Terraform and packages on every pull request and push, and each push to main publishes the package to the estate's artifacts bucket as `ui/<version>.zip`, tagging the commit `ui/<version>`, once the repository has the variables `AWS_REGION`, `ARTIFACTS_BUCKET` and `PUBLISH_ROLE_ARN` from `featurewise-environments`' bootstrap.
 
 ## Building
 

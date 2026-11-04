@@ -1,4 +1,5 @@
 import { devAuth } from "./auth.js";
+import { oidcAuth } from "./oidc.js";
 import { loadConfig } from "./config.js";
 import { definePill, type Pill } from "./pill.js";
 import { Shell } from "./shell.js";
@@ -21,7 +22,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  const auth = devAuth(config.devUsers ?? []);
+  const auth = config.signIn ? oidcAuth(config.signIn) : devAuth(config.devUsers ?? []);
   definePill();
   const pill = document.createElement("featurewise-pill") as Pill;
   document.body.append(pill);

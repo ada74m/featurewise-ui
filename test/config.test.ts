@@ -11,6 +11,10 @@ describe("services.json", () => {
     expect(() => readConfig({ default: "/", services: { _shell: { module: "m", bff: "b" } } })).toThrow(/_/);
   });
 
+  it("needs every setting for signing in, if it has any", () => {
+    expect(() => readConfig({ ...config, signIn: { authorizeUrl: "a", tokenUrl: "t", clientId: "c" } })).toThrow(/logoutUrl/);
+  });
+
   it("needs a module and a backend for each service", () => {
     expect(() => readConfig({ default: "/", services: { sample: { module: "m" } } })).toThrow(/bff/);
   });

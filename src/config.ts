@@ -13,6 +13,18 @@ export interface DevUser {
   groups?: string[];
 }
 
+// Where people sign in, as an OpenID Connect provider's endpoints, such as a Cognito user pool's managed
+// login. The shell signs in with the authorization code flow and PKCE, so its client has no secret.
+export interface SignInConfig {
+  authorizeUrl: string;
+  tokenUrl: string;
+  // Where to go to sign out at the provider, with whatever parameters it needs, such as Cognito's
+  // client_id and logout_uri.
+  logoutUrl: string;
+  clientId: string;
+  scopes?: string[];
+}
+
 export interface ShellConfig {
   // Where "/" goes, such as "/sample/things".
   default: string;
@@ -20,6 +32,8 @@ export interface ShellConfig {
   // Present only where there's no real sign-in, as on the local host: the users the pill offers to
   // switch to, each signed in with an unsigned token.
   devUsers?: DevUser[];
+  // Present where people sign in for real, as on AWS.
+  signIn?: SignInConfig;
 }
 
 // The shell's own pages live under this prefix, so no service id may start with it.
@@ -38,6 +52,9 @@ export function readConfig(json: unknown): ShellConfig {
     if (typeof service?.module !== "string" || typeof service.bff !== "string")
       throw new Error(`the service ${id} needs a module and a bff URL`);
   }
+  const signIn = config.signIn;
+  if (signIn && [signIn.authorizeUrl, signIn.tokenUrl, signIn.logoutUrl, signIn.clientId].some(v => typeof v !== "string"))
+    throw new Error("signIn needs an authorizeUrl, tokenUrl, logoutUrl and clientId");
   return config;
 }
 

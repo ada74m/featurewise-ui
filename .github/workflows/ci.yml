@@ -1,4 +1,6 @@
-# Builds and tests the shell on every pull request and push to main.
+# Builds and tests the shell, checks its Terraform and packages it, on every pull request and push to
+# main. Each push to main also publishes the package, versioned by date and run, to the estate's
+# artifacts bucket, and tags the commit with that version.
 name: CI
 
 on:
@@ -12,6 +14,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v7
 
@@ -23,3 +27,60 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm test
+
+      - uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: 1.14.4
+
+      - name: Check Terraform
+        run: terraform fmt -check -recursive . && cd Infrastructure && terraform init -backend=false -input=false && terraform validate
+
+      # Pull requests get a version too, so their package can be inspected, but only main's are published.
+      - name: Choose a version
+        id: version
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = push ]; then
+            echo "version=$(date -u +%Y.%m.%d).$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=pr${{ github.event.number }}.$GITHUB_RUN_NUMBER" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Package
+        run: ./package.sh "${{ steps.version.outputs.version }}" out
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ui-${{ steps.version.outputs.version }}
+          path: out/ui-${{ steps.version.outputs.version }}.zip
+          if-no-files-found: error
+
+  # Needs the estate's bootstrap: the repository variables AWS_REGION, ARTIFACTS_BUCKET and
+  # PUBLISH_ROLE_ARN, and the role it names, which trusts only this repository's main branch.
+  publish:
+    needs: build
+    if: github.event_name == 'push' && vars.ARTIFACTS_BUCKET != ''
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: ui-${{ needs.build.outputs.version }}
+
+      - uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ vars.PUBLISH_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Publish the package
+        run: aws s3 cp "ui-$VERSION.zip" "s3://${{ vars.ARTIFACTS_BUCKET }}/ui/$VERSION.zip" --no-progress
+
+      - name: Tag the commit
+        run: |
+          git tag "ui/$VERSION"
+          git push origin "ui/$VERSION"

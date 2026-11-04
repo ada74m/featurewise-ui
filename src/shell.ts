@@ -57,6 +57,8 @@ export class Shell {
       return this.load();
     }
     if (place.kind === "shell") {
+      if (place.page === "callback")
+        return this.completeSignIn(search);
       if (place.page === "services")
         return this.show(this.page, element => renderServicesPage(element, this.options.config, this.window.location.href));
       return this.show(this.page, element => message(element, "There's no such page."));
@@ -69,6 +71,19 @@ export class Shell {
     if (!link)
       return this.show(this.page, element => message(element, "There's nothing at this address."));
     return this.invokeIn(this.page, link, "GET");
+  }
+
+  // The identity provider sends the user back here after signing in. Once the tokens are in hand, the
+  // shell goes back to where the user was, without leaving the callback in the history.
+  private async completeSignIn(search: string): Promise<void> {
+    let returnTo = "/";
+    try {
+      returnTo = await this.options.auth.completeSignIn?.(search) ?? "/";
+    } catch (error) {
+      this.options.toaster.show(String((error as Error).message));
+    }
+    this.window.history.replaceState(null, "", returnTo);
+    return this.load();
   }
 
   // Opens the shell's services page.

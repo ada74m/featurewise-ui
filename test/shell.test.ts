@@ -142,6 +142,19 @@ describe("the shell", () => {
     expect(main.textContent).toBe("There's nothing at this address.");
   });
 
+  it("finishes signing in on its callback page, and goes back where the user was", async () => {
+    const { fetch } = fetcher({ body: thingsResult });
+    const completed: string[] = [];
+    const auth = { ...signedIn(), completeSignIn: async (search: string) => { completed.push(search); return "/sample/things"; } };
+    history.replaceState(null, "", "/_shell/callback?code=c&state=s");
+
+    await shell(module(), fetch, { auth }).load();
+
+    expect(completed).toEqual(["?code=c&state=s"]);
+    expect(location.pathname).toBe("/sample/things");
+    expect(main.textContent).toContain("Teapot");
+  });
+
   it("toasts when the backend can't be reached", async () => {
     const failing = (async () => { throw new TypeError("offline"); }) as typeof globalThis.fetch;
     history.replaceState(null, "", "/sample/things");

@@ -66,7 +66,11 @@ export class Pill extends HTMLElement {
 
     const who = document.createElement("button");
     who.textContent = user ? user.username : "Sign in";
-    who.setAttribute("popovertarget", "menu");
+    // With a real sign-in, Sign in goes straight to the provider; otherwise it opens the menu of users.
+    if (!user && auth.signIn)
+      who.addEventListener("click", () => void auth.signIn!(location.pathname + location.search));
+    else
+      who.setAttribute("popovertarget", "menu");
 
     const cog = document.createElement("button");
     cog.textContent = "⚙";
