@@ -1,0 +1,32 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Commands
+
+```
+npm install
+npm run build      # tsc to dist/, then copies static/ (index.html, shell.css)
+npm test           # tsc -p test (type-checks the tests), then vitest run
+```
+
+A change is done when the build is clean and `npm test` passes. For a behaviour change, temporarily remove the new code to confirm its test fails.
+
+## What this is
+
+The Featurewise UI shell. `README.md` explains how it behaves, and `../book/code-plan.md` ("Front-end design" and "Building the shell") holds the design and the decisions behind it; keep to them.
+
+- Plain TypeScript, compiled by `tsc` to native ES modules in `dist/`, with no bundler, no framework and no runtime dependencies. Imports name `.js` files. If the shell's own UI gets painful, the plan's way out is Lit, not a rewrite.
+- `src/contract.ts` is the contract with modules, and must stay free of any framework. Modules never invoke: the shell does all invoking, in `src/bff.ts`, the only place that knows the backend's URLs and headers.
+- `src/shell.ts` is the core: addresses to links and back, GET to load an address and POST to follow a link, problems handled by the shell, results rendered by the module or `src/generic.ts`.
+- The shell's own UI is web components with shadow DOM (`src/pill.ts`), so modules' styles and the shell's can't leak into each other. Its pages are under `/_shell/`, and `services.json` may not name a service starting with `_`.
+- Signing in is `src/auth.ts`. Only the dev sign-in exists so far: unsigned tokens for the users in `services.json`'s `devUsers`, which only a local host accepts.
+
+## Tests
+
+Vitest with happy-dom, in `test/`, one file per source file, named for what they describe. `test/fakes.ts` has a fake module, a recording `fetch` and fake sign-ins.
+
+## Conventions
+
+- One concern per file in `src/`.
+- Prose (README, comments) is in classic style: direct, no metadiscourse, no hedging. British spelling.
