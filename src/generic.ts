@@ -1,9 +1,9 @@
 import { isLink, type Host, type Link } from "./contract.js";
 import { openLinkDialog } from "./linkDialog.js";
 
-// Renders any result as nested lists, with each link as a button labelled by its property's name, such
-// as LinkToDelete. A button opens the link's JSON to edit and follow. It knows nothing about any
-// feature, so every service can be used before it has handlers of its own.
+// Renders any result as nested lists, each property named as "Name: value". A link's value is an "open"
+// button, so LinkToDelete reads "LinkToDelete: open", and opens the link's JSON to edit and follow. It
+// knows nothing about any feature, so every service can be used before it has handlers of its own.
 export function renderGeneric(element: HTMLElement, value: unknown, host: Host): () => void {
   const document = element.ownerDocument;
   const root = document.createElement("div");
@@ -29,8 +29,7 @@ function node(document: Document, value: unknown, label: string, host: Host): No
     : Object.entries(value);
   for (const [key, item] of entries) {
     const entry = document.createElement("li");
-    // A link's button already carries its property's name.
-    if (!Array.isArray(value) && !isLink(item)) {
+    if (!Array.isArray(value)) {
       const name = document.createElement("span");
       name.className = "fw-key";
       name.textContent = `${key}: `;
@@ -46,7 +45,9 @@ function linkButton(document: Document, label: string, link: Link, host: Host): 
   const button = document.createElement("button");
   button.type = "button";
   button.className = "fw-link";
-  button.textContent = label;
+  button.textContent = "open";
+  // Which link it is, for a screen reader and on hover.
+  button.setAttribute("aria-label", `Open ${label}`);
   button.title = link.$feature;
   button.addEventListener("click", () => openLinkDialog(document, label, link, host.follow));
   return button;

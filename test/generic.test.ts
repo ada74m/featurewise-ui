@@ -23,13 +23,16 @@ describe("the generic renderer", () => {
     }]
   };
 
-  it("shows every value, and each link as a button named after its property", () => {
+  it("shows every value, and each link as its property's name and an open button", () => {
     renderGeneric(element, result, host);
 
     expect(element.textContent).toContain("Teapot");
-    const buttons = [...element.querySelectorAll("button.fw-link")].map(button => button.textContent);
-    expect(buttons).toEqual(["LinkToDelete", "LinkToRename"]);
-    expect(element.textContent).not.toContain("LinkToDelete: ");
+    const entries = [...element.querySelectorAll("li")]
+      .filter(entry => entry.querySelector(":scope > button.fw-link"))
+      .map(entry => entry.textContent);
+    expect(entries).toEqual(["LinkToDelete: open", "LinkToRename: open"]);
+    const buttons = [...element.querySelectorAll("button.fw-link")].map(button => button.getAttribute("aria-label"));
+    expect(buttons).toEqual(["Open LinkToDelete", "Open LinkToRename"]);
   });
 
   it("opens a link's JSON to edit, and follows it as edited", () => {
