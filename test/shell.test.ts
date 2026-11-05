@@ -212,4 +212,15 @@ describe("the shell", () => {
     expect(toasts).toEqual([]);
     expect(location.pathname).toBe("/sample/things");
   });
+
+  it("runs a command of its own, says it's done, and loads the page again", async () => {
+    const { fetch, calls } = fetcher({ body: thingsResult }, { body: { Demo: "sample" } }, { body: thingsResult });
+    const theShell = shell(module(), fetch);
+    await theShell.start();
+
+    await theShell.runAndReload({ $feature: "sample/ResetDemo", Demo: "sample" }, "Started again.");
+
+    expect(calls.map(call => call.method)).toEqual(["GET", "POST", "GET"]);
+    expect(toasts).toEqual(["Started again."]);
+  });
 });

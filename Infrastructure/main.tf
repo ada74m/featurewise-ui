@@ -37,6 +37,7 @@ locals {
       scopes       = var.sign_in.scopes
     }
     personas = var.personas
+    demos    = var.demos
   }
 }
 

@@ -1,3 +1,5 @@
+import type { Link } from "./contract.js";
+
 // The shell's configuration, from services.json on the shell's origin.
 
 export interface ServiceConfig {
@@ -17,6 +19,20 @@ export interface Persona {
   label?: string;
   demo?: string;
   groups?: string[];
+}
+
+// A demo, as a service such as the demos has several: what it is, the story its data tells so far, what
+// to try, who a visitor can be in it, and the link that starts it again from its seed. Its id is the
+// first part of its addresses, as with a persona's demo.
+export interface DemoConfig {
+  id: string;
+  title?: string;
+  chapter?: string;
+  about?: string[];
+  storySoFar?: string[];
+  tryThis?: string[];
+  personas?: Persona[];
+  reset?: Link;
 }
 
 // What services.json said before personas, which the local hosts of services such as the sample still say.
@@ -46,6 +62,8 @@ export interface ShellConfig {
   personas?: Persona[];
   // The same as personas, in the older form.
   devUsers?: DevUser[];
+  // The demos, each with its personas, which are offered as if listed in personas.
+  demos?: DemoConfig[];
   // Present where people sign in for real, as on AWS.
   signIn?: SignInConfig;
 }
@@ -70,6 +88,12 @@ export function readConfig(json: unknown): ShellConfig {
     && (!Array.isArray(config.personas) || config.personas.some(persona => typeof persona?.id !== "string")))
     throw new Error("each persona needs an id");
   config.personas ??= config.devUsers?.map(user => ({ id: user.username, groups: user.groups }));
+  if (config.demos !== undefined
+    && (!Array.isArray(config.demos) || config.demos.some(demo => typeof demo?.id !== "string")))
+    throw new Error("each demo needs an id");
+  const demoPersonas = (config.demos ?? []).flatMap(demo => (demo.personas ?? []).map(persona => ({ ...persona, demo: demo.id })));
+  if (demoPersonas.length)
+    config.personas = [...(config.personas ?? []), ...demoPersonas];
 
   const signIn = config.signIn;
   if (signIn && [signIn.authorizeUrl, signIn.tokenUrl, signIn.logoutUrl, signIn.clientId].some(v => typeof v !== "string"))

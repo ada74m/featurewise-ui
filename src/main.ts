@@ -2,7 +2,7 @@ import { devAuth } from "./auth.js";
 import { oidcAuth } from "./oidc.js";
 import { loadConfig } from "./config.js";
 import { definePill, type Pill } from "./pill.js";
-import { renderPersonaBar } from "./personaBar.js";
+import { renderDemoPanel } from "./demoPanel.js";
 import { Shell } from "./shell.js";
 import { toaster } from "./toast.js";
 
@@ -29,16 +29,16 @@ async function main(): Promise<void> {
   const pill = document.createElement("featurewise-pill") as Pill;
   document.body.append(pill);
 
-  // Above the page, for a demo's personas.
-  const bar = document.createElement("div");
-  bar.className = "fw-personas";
-  bar.hidden = true;
-  main.before(bar);
+  // Above a demo's pages: what it is, its story so far, and who the visitor can be.
+  const panel = document.createElement("section");
+  panel.className = "fw-demo";
+  panel.hidden = true;
+  main.before(panel);
 
   const shell = new Shell({
     config, auth, main, toaster: toasts,
     needsSignIn: () => pill.openMenu(),
-    onPlace: place => renderPersonaBar(bar, auth, place)
+    onPlace: place => renderDemoPanel(panel, config.demos ?? [], auth, place, link => void shell.runAndReload(link, "Started again from the beginning."))
   });
   pill.attach(auth, () => void shell.openServices());
   // What a user may do decides which links they're offered, so a new user sees the page afresh.

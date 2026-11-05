@@ -28,4 +28,10 @@ describe("services.json", () => {
   it("needs an id for each persona", () => {
     expect(() => readConfig({ default: "/", services: {}, personas: [{ label: "Nobody" }] })).toThrow();
   });
+
+  it("offers each demo's personas as personas of that demo", () => {
+    const read = readConfig({ default: "/", services: {}, demos: [{ id: "lost-property", personas: [{ id: "clerk", groups: ["clerk"] }] }] });
+
+    expect(read.personas).toEqual([{ id: "clerk", groups: ["clerk"], demo: "lost-property" }]);
+  });
 });

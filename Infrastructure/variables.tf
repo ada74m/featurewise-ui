@@ -41,3 +41,9 @@ variable "personas" {
   }))
   default = []
 }
+
+variable "demos" {
+  description = "The demos, where a service has them, as the demos service's demos.json lists them: each with its id, the first part of its addresses, its title, chapter, text (about, storySoFar, tryThis), personas, and reset link. The shell shows them above each demo's pages, and offers their personas."
+  type        = any
+  default     = []
+}

@@ -121,6 +121,30 @@ export class Shell {
     return this.load();
   }
 
+  // Invokes a command for the shell itself, such as starting a demo again, then says so and loads the
+  // page again, to show what it changed.
+  async runAndReload(link: Link, done: string): Promise<void> {
+    const [service] = featureOf(link);
+    const config = this.options.config.services[service];
+    if (!config) {
+      this.options.toaster.show(`There's no service called ${service}.`);
+      return;
+    }
+    let response: ShellResponse;
+    try {
+      response = await invoke(config.bff, link, "POST", this.options.auth.current()?.token ?? null, this.options.fetcher);
+    } catch {
+      this.options.toaster.show("Something went wrong. Try again.");
+      return;
+    }
+    if (isProblem(response)) {
+      this.handleProblem(response);
+      return;
+    }
+    this.options.toaster.show(done);
+    return this.load();
+  }
+
   // Follows a link on the page, as a user's click does.
   follow(link: Link): Promise<void> {
     return this.invokeIn(this.page, link, "POST");
