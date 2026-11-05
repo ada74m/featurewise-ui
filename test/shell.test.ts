@@ -190,4 +190,26 @@ describe("the shell", () => {
     expect(toasts).toContain("There's no persona called nobody.");
     expect(main.textContent).toContain("Teapot");
   });
+
+  it("finishes signing in once, though the sign-in loads the page again while it's at the callback", async () => {
+    const { fetch } = fetcher({ body: thingsResult }, { body: thingsResult });
+    let completions = 0;
+    let theShell: Shell | null = null;
+    const auth = {
+      ...signedIn(),
+      completeSignIn: async () => {
+        completions++;
+        void theShell!.load();   // as the shell's listener does when the user changes
+        return "/sample/things";
+      }
+    };
+    theShell = shell(module(), fetch, { auth });
+    history.replaceState(null, "", "/_shell/callback?code=c&state=s");
+
+    await theShell.start();
+
+    expect(completions).toBe(1);
+    expect(toasts).toEqual([]);
+    expect(location.pathname).toBe("/sample/things");
+  });
 });

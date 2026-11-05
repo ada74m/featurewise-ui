@@ -35,6 +35,8 @@ export interface ShellOptions {
 // invoke anything.
 export class Shell {
   private readonly modules = new Map<string, Promise<ServiceModule>>();
+  // The sign-in being finished at the callback, which a load meanwhile waits for rather than repeating.
+  private signingIn: Promise<void> | null = null;
   private readonly page: Frame;
   private readonly window: Window;
 
@@ -79,8 +81,12 @@ export class Shell {
       return this.load();
     }
     if (place.kind === "shell") {
-      if (place.page === "callback")
-        return this.completeSignIn(search);
+      if (place.page === "callback") {
+        // Finishing sign-in says the user changed, which loads the page again while it's still here.
+        // It's noted before it starts, so even a load straight away finds it.
+        this.signingIn ??= Promise.resolve().then(() => this.completeSignIn(search)).finally(() => { this.signingIn = null; });
+        return this.signingIn;
+      }
       if (place.page === "services")
         return this.show(this.page, element => renderServicesPage(element, this.options.config, this.window.location.href));
       return this.show(this.page, element => message(element, "There's no such page."));
@@ -105,6 +111,7 @@ export class Shell {
       this.options.toaster.show(String((error as Error).message));
     }
     this.window.history.replaceState(null, "", returnTo);
+    this.signingIn = null;
     return this.load();
   }
 
