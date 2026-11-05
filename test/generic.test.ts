@@ -35,6 +35,22 @@ describe("the generic renderer", () => {
     expect(buttons).toEqual(["Open LinkToDelete", "Open LinkToRename"]);
   });
 
+  it("nests values in braces and brackets, as formatted JSON does", () => {
+    renderGeneric(element, { Things: [{ Id: "t1" }, { Id: "t2" }], Empty: [] }, host);
+
+    const root = element.querySelector(".fw-generic")!;
+    expect(root.firstChild!.textContent).toBe("{");
+    expect(root.lastChild!.textContent).toBe("}");
+    const things = root.querySelector(":scope > ul > li")!;
+    expect(things.firstChild!.textContent).toBe("Things: ");
+    expect(things.children[1]!.textContent).toBe("[");
+    expect(things.lastChild!.textContent).toBe("]");
+    // Each member of the array is its own braced object.
+    const members = [...things.querySelectorAll(":scope > ul > li")].map(member => member.textContent);
+    expect(members).toEqual(["{Id: t1}", "{Id: t2}"]);
+    expect(element.textContent).toContain("Empty: []");
+  });
+
   it("opens a link's JSON to edit, and follows it as edited", () => {
     renderGeneric(element, result, host);
     (element.querySelectorAll("button.fw-link")[1] as HTMLButtonElement).click();

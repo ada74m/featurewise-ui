@@ -24,7 +24,7 @@ body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(-
 .fw-persona:hover { filter: brightness(1.1); }
 
 .fw-generic ul { list-style: none; margin: 0; padding-left: 1.25rem; border-left: 1px solid var(--fw-border); }
-.fw-generic > ul { padding-left: 0; border-left: none; }
+.fw-punct { color: var(--fw-muted); }
 .fw-key { color: var(--fw-muted); }
 .fw-null { color: var(--fw-muted); font-style: italic; }
 /* A link's value: a small button on the line, after its property's name. */
