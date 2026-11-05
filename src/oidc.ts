@@ -1,10 +1,12 @@
 import type { Auth, SignedIn } from "./auth.js";
-import type { SignInConfig } from "./config.js";
+import type { Persona, SignInConfig } from "./config.js";
 import { shellPath } from "./address.js";
 
 // Signing in with an OpenID Connect provider, such as a Cognito user pool's managed login, by the
 // authorization code flow with PKCE: the shell has no client secret, so it proves it's the one that
 // asked by holding the verifier whose hash it sent. Tokens are kept for the browser tab's session.
+// Where the provider has personas, as the demos' sign-in does, becoming one is signing in with its id
+// as the login_hint, which such a provider signs in without asking.
 
 const pendingKey = "featurewise.signin";
 const tokensKey = "featurewise.tokens";
@@ -30,7 +32,7 @@ export interface OidcOptions {
   now?: () => number;
 }
 
-export function oidcAuth(settings: SignInConfig, options: OidcOptions = {}): Auth {
+export function oidcAuth(settings: SignInConfig, personas: Persona[] = [], options: OidcOptions = {}): Auth {
   const storage = options.storage ?? sessionStorage;
   const origin = options.origin ?? location.origin;
   const go = options.go ?? (url => location.assign(url));
@@ -48,7 +50,7 @@ export function oidcAuth(settings: SignInConfig, options: OidcOptions = {}): Aut
     }
   };
 
-  return {
+  const auth: Auth = {
     current(): SignedIn | null {
       const tokens = read<Tokens>(tokensKey);
       if (!tokens || tokens.expiresAt <= now())
@@ -56,13 +58,13 @@ export function oidcAuth(settings: SignInConfig, options: OidcOptions = {}): Aut
       return { username: usernameOf(tokens), token: tokens.accessToken };
     },
 
-    users: () => [],
+    personas: () => personas,
 
-    signInAs() {
-      throw new Error("there's no switching user with a real sign-in");
+    signInAs(persona, returnTo = location.pathname + location.search) {
+      void auth.signIn!(returnTo, persona.id);
     },
 
-    async signIn(returnTo) {
+    async signIn(returnTo, loginHint) {
       const verifier = randomString(48);
       const state = randomString(24);
       storage.setItem(pendingKey, JSON.stringify({ state, verifier, returnTo } satisfies Pending));
@@ -75,6 +77,8 @@ export function oidcAuth(settings: SignInConfig, options: OidcOptions = {}): Aut
         code_challenge: await challengeOf(verifier),
         code_challenge_method: "S256"
       });
+      if (loginHint)
+        query.set("login_hint", loginHint);
       go(`${settings.authorizeUrl}?${query}`);
     },
 
@@ -120,6 +124,7 @@ export function oidcAuth(settings: SignInConfig, options: OidcOptions = {}): Aut
 
     onChange: listener => { listeners.push(listener); }
   };
+  return auth;
 }
 
 // The name to show: from the ID token if there is one, otherwise the access token.

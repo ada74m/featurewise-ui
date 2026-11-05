@@ -2,6 +2,7 @@ import { devAuth } from "./auth.js";
 import { oidcAuth } from "./oidc.js";
 import { loadConfig } from "./config.js";
 import { definePill, type Pill } from "./pill.js";
+import { renderPersonaBar } from "./personaBar.js";
 import { Shell } from "./shell.js";
 import { toaster } from "./toast.js";
 
@@ -22,12 +23,23 @@ async function main(): Promise<void> {
     return;
   }
 
-  const auth = config.signIn ? oidcAuth(config.signIn) : devAuth(config.devUsers ?? []);
+  const personas = config.personas ?? [];
+  const auth = config.signIn ? oidcAuth(config.signIn, personas) : devAuth(personas);
   definePill();
   const pill = document.createElement("featurewise-pill") as Pill;
   document.body.append(pill);
 
-  const shell = new Shell({ config, auth, main, toaster: toasts, needsSignIn: () => pill.openMenu() });
+  // Above the page, for a demo's personas.
+  const bar = document.createElement("div");
+  bar.className = "fw-personas";
+  bar.hidden = true;
+  main.before(bar);
+
+  const shell = new Shell({
+    config, auth, main, toaster: toasts,
+    needsSignIn: () => pill.openMenu(),
+    onPlace: place => renderPersonaBar(bar, auth, place)
+  });
   pill.attach(auth, () => void shell.openServices());
   // What a user may do decides which links they're offered, so a new user sees the page afresh.
   auth.onChange(() => void shell.load());

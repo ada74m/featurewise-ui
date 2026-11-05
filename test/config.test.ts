@@ -18,4 +18,14 @@ describe("services.json", () => {
   it("needs a module and a backend for each service", () => {
     expect(() => readConfig({ default: "/", services: { sample: { module: "m" } } })).toThrow(/bff/);
   });
+
+  it("takes the older dev users as personas", () => {
+    const read = readConfig({ default: "/", services: {}, devUsers: [{ username: "ann", groups: ["editor"] }] });
+
+    expect(read.personas).toEqual([{ id: "ann", groups: ["editor"] }]);
+  });
+
+  it("needs an id for each persona", () => {
+    expect(() => readConfig({ default: "/", services: {}, personas: [{ label: "Nobody" }] })).toThrow();
+  });
 });

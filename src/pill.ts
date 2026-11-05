@@ -1,4 +1,5 @@
 import type { Auth } from "./auth.js";
+import { labelOf } from "./config.js";
 
 // The shell's own controls: who's signed in, with a menu to switch user or log out, and a cog that
 // opens the services page. It floats in the top right corner until dragged, and remembers where it was
@@ -64,10 +65,12 @@ export class Pill extends HTMLElement {
     grip.title = "Drag to move";
     this.dragBy(grip);
 
+    const current = auth.personas().find(persona => persona.id === user?.username);
     const who = document.createElement("button");
-    who.textContent = user ? user.username : "Sign in";
-    // With a real sign-in, Sign in goes straight to the provider; otherwise it opens the menu of users.
-    if (!user && auth.signIn)
+    who.textContent = user ? (current ? labelOf(current) : user.username) : "Sign in";
+    // With a real sign-in and no personas, Sign in goes straight to the provider; otherwise it opens the
+    // menu of personas.
+    if (!user && auth.signIn && auth.personas().length === 0)
       who.addEventListener("click", () => void auth.signIn!(location.pathname + location.search));
     else
       who.setAttribute("popovertarget", "menu");
@@ -81,16 +84,16 @@ export class Pill extends HTMLElement {
     const menu = document.createElement("div");
     menu.id = "menu";
     menu.setAttribute("popover", "");
-    for (const devUser of auth.users()) {
+    for (const persona of auth.personas()) {
       const item = document.createElement("button");
-      item.textContent = devUser.groups?.length ? `${devUser.username} (${devUser.groups.join(", ")})` : devUser.username;
-      if (devUser.username === user?.username)
+      item.textContent = persona.groups?.length ? `${labelOf(persona)} (${persona.groups.join(", ")})` : labelOf(persona);
+      if (persona.id === user?.username)
         item.className = "current";
-      item.addEventListener("click", () => auth.signInAs(devUser));
+      item.addEventListener("click", () => auth.signInAs(persona));
       menu.append(item);
     }
     if (user) {
-      if (auth.users().length)
+      if (auth.personas().length)
         menu.append(document.createElement("hr"));
       const logOut = document.createElement("button");
       logOut.textContent = "Log out";

@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ServiceModule, ShellResponse } from "../src/contract.js";
+import { devAuth } from "../src/auth.js";
 import { Shell, type ShellOptions } from "../src/shell.js";
 import { config, fetcher, module, signedIn, things } from "./fakes.js";
 
@@ -162,5 +163,31 @@ describe("the shell", () => {
     await shell(module(), failing).load();
 
     expect(toasts).toEqual(["Something went wrong. Try again."]);
+  });
+
+  it("becomes the persona ?as= names, and leaves it out of the address", async () => {
+    localStorage.clear();
+    const { fetch, calls } = fetcher({ body: thingsResult });
+    const auth = devAuth([{ id: "ann" }, { id: "bob" }]);
+    const theShell = shell(module(), fetch, { auth });
+    auth.onChange(() => void theShell.load());
+    history.replaceState(null, "", "/sample/things?as=bob");
+
+    await theShell.start();
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(auth.current()?.username).toBe("bob");
+    expect(location.pathname + location.search).toBe("/sample/things");
+    expect(calls.length).toBe(1);
+  });
+
+  it("says so when ?as= names nobody, and loads the page anyway", async () => {
+    const { fetch } = fetcher({ body: thingsResult });
+    history.replaceState(null, "", "/sample/things?as=nobody");
+
+    await shell(module(), fetch).start();
+
+    expect(toasts).toContain("There's no persona called nobody.");
+    expect(main.textContent).toContain("Teapot");
   });
 });

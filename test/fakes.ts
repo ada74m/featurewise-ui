@@ -46,7 +46,7 @@ export function fetcher(...responses: { status?: number; contentType?: string; b
 }
 
 export function signedOut(): Auth {
-  return { current: () => null, users: () => [], signInAs: () => {}, signOut: () => {}, onChange: () => {} };
+  return { current: () => null, personas: () => [], signInAs: () => {}, signOut: () => {}, onChange: () => {} };
 }
 
 export function signedIn(token = "a-token"): Auth {

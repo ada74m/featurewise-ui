@@ -30,3 +30,14 @@ variable "sign_in" {
     scopes        = optional(list(string), ["openid"])
   })
 }
+
+variable "personas" {
+  description = "Who a visitor can be, where the sign-in has personas, as the demos' does: each with its id, which the shell names in login_hint, a label, the demo it belongs to, which the persona bar shows it on, and its groups."
+  type = list(object({
+    id     = string
+    label  = optional(string)
+    demo   = optional(string)
+    groups = optional(list(string), [])
+  }))
+  default = []
+}

@@ -36,6 +36,7 @@ locals {
       clientId     = var.sign_in.client_id
       scopes       = var.sign_in.scopes
     }
+    personas = var.personas
   }
 }
 

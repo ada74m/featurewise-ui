@@ -24,7 +24,7 @@ describe("signing in with an OpenID Connect provider", () => {
   });
 
   const auth = (answer = { access_token: token({ username: "ann" }), id_token: token({ "cognito:username": "ann" }), expires_in: 3600 }) =>
-    oidcAuth(settings, {
+    oidcAuth(settings, [], {
       origin: "https://shell.example.com",
       go: url => visited.push(url),
       now: () => clock,
@@ -90,5 +90,16 @@ describe("signing in with an OpenID Connect provider", () => {
 
     expect(signIn.current()).toBeNull();
     expect(visited.at(-1)).toBe(settings.logoutUrl);
+  });
+
+  it("becomes a persona by naming it in the login hint, to come back where the visitor was", async () => {
+    const signIn = oidcAuth(settings, [{ id: "clerk", demo: "lost-property" }], { origin: "https://shell.example.com", go: url => visited.push(url) });
+
+    signIn.signInAs({ id: "clerk" }, "/demos/lost-property/unclaimed-items");
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(new URL(visited[0]!).searchParams.get("login_hint")).toBe("clerk");
+    expect(JSON.parse(sessionStorage.getItem("featurewise.signin")!).returnTo).toBe("/demos/lost-property/unclaimed-items");
+    expect(signIn.personas()).toEqual([{ id: "clerk", demo: "lost-property" }]);
   });
 });

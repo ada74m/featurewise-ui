@@ -32,13 +32,17 @@ The shell reads `services.json` from its own origin:
 {
   "default": "/sample/things",
   "services": { "sample": { "module": "/modules/sample/index.js", "bff": "/api/sample" } },
-  "devUsers": [{ "username": "ann", "groups": ["editor"] }, { "username": "bob" }]
+  "personas": [{ "id": "ann", "label": "Ann", "groups": ["editor"] }, { "id": "bob" }]
 }
 ```
 
-`devUsers` is only for where there's no real sign-in, such as a service's local host: the pill offers those users, and the shell signs in as one with an unsigned token carrying the claims Cognito's would, which only a local host accepts.
+`personas` are who a visitor can be. Where there's no real sign-in, such as a service's local host, the pill offers them, and the shell signs in as one with an unsigned token carrying the claims Cognito's would, which only a local host accepts. The older `devUsers` (`username` and `groups`) is read as personas too.
 
 Where people sign in for real, `services.json` has `signIn` instead: an OpenID Connect provider's `authorizeUrl`, `tokenUrl` and `logoutUrl`, and the shell's `clientId`, which has no secret. Sign in sends the user to the provider's own sign-in page, such as a Cognito user pool's managed login, by the authorization code flow with PKCE. The provider sends them back to `/_shell/callback`, where the shell trades the code for tokens, keeps them for the tab's session, and returns to the page they were on. The shell sends the access token to every backend. Log out clears the tokens and goes to the `logoutUrl`, which includes whatever the provider needs, such as Cognito's `client_id` and `logout_uri`.
+
+A sign-in can have personas too, as the demos' does. Then the pill offers them, and becoming one is signing in with its id as the standard `login_hint`, which such a sign-in signs in without asking.
+
+A persona with a `demo` belongs to that demo, the first part of an address within its service, such as `lost-property` in `/demos/lost-property/unclaimed-items`. Above a demo's pages, the persona bar says who the visitor is and offers the demo's other personas. Any address can also carry `?as=<persona>`, as a link from the book does: the shell becomes that persona and drops the parameter.
 
 ## Hosting on AWS
 

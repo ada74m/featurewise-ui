@@ -1,4 +1,4 @@
-import { pathOf, placeOf, shellPath } from "./address.js";
+import { pathOf, placeOf, shellPath, type Place } from "./address.js";
 import type { Auth } from "./auth.js";
 import { invoke, isProblem, type Method, type Problem } from "./bff.js";
 import type { ShellConfig } from "./config.js";
@@ -23,6 +23,8 @@ export interface ShellOptions {
   toaster: Toaster;
   // Called when a request needs someone signed in.
   needsSignIn?: () => void;
+  // Called with each place the shell shows, as the persona bar needs.
+  onPlace?: (place: Place) => void;
   importModule?: (url: string) => Promise<{ default: ServiceModule }>;
   fetcher?: typeof fetch;
   window?: Window;
@@ -50,7 +52,27 @@ export class Shell {
   // address stands for, invoked by GET, since a reload or Back repeats it.
   async load(): Promise<void> {
     const { pathname, search } = this.window.location;
+
+    // ?as=<persona>, as in a link from the book, becomes that persona first, and leaves the address.
+    const query = new URLSearchParams(search);
+    const as = query.get("as");
+    if (as !== null) {
+      query.delete("as");
+      const rest = `${pathname}${query.size ? `?${query}` : ""}`;
+      this.window.history.replaceState(null, "", rest);
+      const persona = this.options.auth.personas().find(p => p.id === as);
+      if (!persona)
+        this.options.toaster.show(`There's no persona called ${as}.`);
+      else if (this.options.auth.current()?.username !== as) {
+        // Becoming them signs them in, which loads the page again, or goes by way of the sign-in.
+        this.options.auth.signInAs(persona, rest);
+        return;
+      }
+      return this.load();
+    }
+
     const place = placeOf(pathname, search);
+    this.options.onPlace?.(place);
 
     if (place.kind === "default") {
       this.window.history.replaceState(null, "", this.options.config.default);

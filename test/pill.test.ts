@@ -10,7 +10,7 @@ describe("the pill", () => {
   });
 
   function pill(openSettings = () => {}) {
-    const auth = devAuth([{ username: "ann", groups: ["editor"] }, { username: "bob" }]);
+    const auth = devAuth([{ id: "ann", groups: ["editor"] }, { id: "bob" }]);
     const element = document.createElement("featurewise-pill") as Pill;
     document.body.append(element);
     element.attach(auth, openSettings);
@@ -31,7 +31,7 @@ describe("the pill", () => {
 
   it("logs out", () => {
     const { auth, buttons } = pill();
-    auth.signInAs({ username: "bob" });
+    auth.signInAs({ id: "bob" });
 
     buttons().find(b => b.textContent === "Log out")!.click();
 
