@@ -186,7 +186,7 @@ export class Shell {
         this.window.history.pushState(null, "", pathOf(service, address));
     }
     this.show(frame, element => module.render(element, response, this.hostFor(frame))
-      ?? renderGeneric(element, response.body, this.hostFor(frame)));
+      ?? renderGeneric(element, response.body, this.hostFor(frame), response.feature));
   }
 
   // Errors are the shell's to handle, and the page stays as it was.

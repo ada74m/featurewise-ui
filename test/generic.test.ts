@@ -76,4 +76,13 @@ describe("the generic renderer", () => {
     expect(followed).toEqual([]);
     expect(dialog.querySelector(".fw-error")!.textContent).toMatch(/\$feature/);
   });
+
+  it("names the feature that answered above its output", () => {
+    renderGeneric(element, result, host, "sample/Things");
+
+    const heading = element.querySelector(".fw-feature")!;
+    expect(heading.textContent).toBe("sample/Things");
+    expect(heading.querySelector("strong")!.textContent).toBe("Things");
+    expect(heading.nextSibling!.textContent).toBe("{");
+  });
 });

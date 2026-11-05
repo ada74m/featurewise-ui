@@ -4,12 +4,15 @@ import { openLinkDialog } from "./linkDialog.js";
 // Renders any result as formatted JSON does, nested in braces and brackets, with each property named as
 // "Name: value" but without JSON's quotes and commas. A link is the one thing JSON doesn't show: its
 // value is an "open" button, so LinkToDelete reads "LinkToDelete: open", and opens the link's JSON to
-// edit and follow. It knows nothing about any feature, so every service can be used before it has
+// edit and follow. Above it is the name of the feature that answered, as links name it, such as
+// demos/UnclaimedItems. It knows nothing about any feature, so every service can be used before it has
 // handlers of its own.
-export function renderGeneric(element: HTMLElement, value: unknown, host: Host): () => void {
+export function renderGeneric(element: HTMLElement, value: unknown, host: Host, feature?: string): () => void {
   const document = element.ownerDocument;
   const root = document.createElement("div");
   root.className = "fw-generic";
+  if (feature)
+    root.append(heading(document, feature));
   root.append(...node(document, value, "link", host));
   element.replaceChildren(root);
   return () => element.replaceChildren();
@@ -46,6 +49,18 @@ function node(document: Document, value: unknown, label: string, host: Host): No
   closing.className = "fw-punct";
   closing.textContent = close;
   return [text(document, open, "fw-punct"), list, closing];
+}
+
+// "demos/UnclaimedItems", with the service muted and the feature's own name to the fore.
+function heading(document: Document, feature: string): HTMLElement {
+  const element = document.createElement("div");
+  element.className = "fw-feature";
+  const slash = feature.indexOf("/");
+  element.append(text(document, feature.slice(0, slash + 1), "fw-feature-service"));
+  const name = document.createElement("strong");
+  name.textContent = feature.slice(slash + 1);
+  element.append(name);
+  return element;
 }
 
 function linkButton(document: Document, label: string, link: Link, host: Host): HTMLButtonElement {
