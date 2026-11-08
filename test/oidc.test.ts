@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { oidcAuth } from "../src/oidc.js";
 
 const settings = {
@@ -96,7 +96,7 @@ describe("signing in with an OpenID Connect provider", () => {
     const signIn = oidcAuth(settings, [{ id: "clerk", demo: "lost-property" }], { origin: "https://shell.example.com", go: url => visited.push(url) });
 
     signIn.signInAs({ id: "clerk" }, "/demos/lost-property/unclaimed-items");
-    await new Promise(resolve => setTimeout(resolve, 0));
+    await vi.waitFor(() => expect(visited).toHaveLength(1));
 
     expect(new URL(visited[0]!).searchParams.get("login_hint")).toBe("clerk");
     expect(JSON.parse(sessionStorage.getItem("featurewise.signin")!).returnTo).toBe("/demos/lost-property/unclaimed-items");
