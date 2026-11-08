@@ -53,6 +53,25 @@ describe("the demo panel", () => {
     expect(auth.current()?.username).toBe("clerk");
   });
 
+  it("is the signed-in persona's demo, whatever the address", () => {
+    const auth = devAuth(personas);
+    auth.signInAs(personas[1]!);
+
+    render(auth, { kind: "service", service: "demos", address: "_/ItemsFoundAt" });
+
+    expect(panel.hidden).toBe(false);
+    expect(panel.querySelector(".fw-demo-title")!.textContent).toContain("The lost property office");
+  });
+
+  it("is hidden on the shell's own pages, even for a persona", () => {
+    const auth = devAuth(personas);
+    auth.signInAs(personas[1]!);
+
+    render(auth, { kind: "shell", page: "services" });
+
+    expect(panel.hidden).toBe(true);
+  });
+
   it("offers the demo's personas to someone who isn't one yet, and nobody else's", () => {
     render();
 

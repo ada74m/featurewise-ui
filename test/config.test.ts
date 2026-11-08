@@ -29,6 +29,13 @@ describe("services.json", () => {
     expect(() => readConfig({ default: "/", services: {}, personas: [{ label: "Nobody" }] })).toThrow();
   });
 
+  it("refuses two personas with one id, since a persona says which demo the visitor is in", () => {
+    expect(() => readConfig({
+      default: "/", services: {},
+      demos: [{ id: "a", personas: [{ id: "staff" }] }, { id: "b", personas: [{ id: "staff" }] }]
+    })).toThrow(/staff/);
+  });
+
   it("offers each demo's personas as personas of that demo", () => {
     const read = readConfig({ default: "/", services: {}, demos: [{ id: "lost-property", personas: [{ id: "clerk", groups: ["clerk"] }] }] });
 
