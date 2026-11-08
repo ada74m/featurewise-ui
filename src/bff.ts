@@ -3,7 +3,7 @@ import { featureOf, type Link, type ShellResponse } from "./contract.js";
 // Every request to a service's UI backend is made here, so nothing else in the shell knows the
 // convention: POST {bff}/{feature} with the link as the body, or, to load an address, which may be
 // repeated, GET {bff}/{feature}?link=<the link's JSON>. The backend answers a GET for anything but a
-// query with 405.
+// query with 405, and says which family the feature that answered belongs to in Featurewise-Family.
 
 export type Method = "POST" | "GET";
 
@@ -32,6 +32,7 @@ export async function invoke(
   return {
     link,
     feature: link.$feature,
+    family: response.headers.get("featurewise-family"),
     status: response.status,
     contentType,
     body: contentType.endsWith("json") && text ? JSON.parse(text) : text

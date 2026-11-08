@@ -1,8 +1,9 @@
-import { pathOf, placeOf, shellPath, type Place } from "./address.js";
+import { defaultAddressOf, linkOfDefaultAddress, pathOf, placeOf, shellPath, type Place } from "./address.js";
 import type { Auth } from "./auth.js";
 import { invoke, isProblem, type Method, type Problem } from "./bff.js";
 import type { ShellConfig } from "./config.js";
 import { featureOf, type Host, type Link, type ServiceModule, type ShellResponse } from "./contract.js";
+import { storedCustomisations, type Customisations } from "./customisation.js";
 import { renderGeneric } from "./generic.js";
 import { renderServicesPage } from "./servicesPage.js";
 import type { Toaster } from "./toast.js";
@@ -25,6 +26,8 @@ export interface ShellOptions {
   needsSignIn?: () => void;
   // Called with each place the shell shows, as the persona bar needs.
   onPlace?: (place: Place) => void;
+  // Whether to use each module's rendering; yes unless the services page turned it off.
+  customisations?: Customisations;
   importModule?: (url: string) => Promise<{ default: ServiceModule }>;
   fetcher?: typeof fetch;
   window?: Window;
@@ -39,10 +42,12 @@ export class Shell {
   private signingIn: Promise<void> | null = null;
   private readonly page: Frame;
   private readonly window: Window;
+  private readonly customisations: Customisations;
 
   constructor(private readonly options: ShellOptions) {
     this.page = { element: options.main, page: true };
     this.window = options.window ?? window;
+    this.customisations = options.customisations ?? storedCustomisations();
   }
 
   start(): Promise<void> {
@@ -88,14 +93,19 @@ export class Shell {
         return this.signingIn;
       }
       if (place.page === "services")
-        return this.show(this.page, element => renderServicesPage(element, this.options.config, this.window.location.href));
+        return this.show(this.page, element => renderServicesPage(element, this.options.config, this.window.location.href, this.customisations));
       return this.show(this.page, element => message(element, "There's no such page."));
     }
 
     const module = await this.moduleOf(place.service);
     if (!module)
       return this.show(this.page, element => message(element, `There's no service called ${place.service}.`));
-    const link = module.addressToLink(place.address);
+    let link: Link | null;
+    try {
+      link = linkOfDefaultAddress(place.service, place.address) ?? module.addressToLink(place.address);
+    } catch {
+      link = null;
+    }
     if (!link)
       return this.show(this.page, element => message(element, "There's nothing at this address."));
     return this.invokeIn(this.page, link, "GET");
@@ -178,14 +188,14 @@ export class Shell {
     }
 
     frame.onResult?.(response);
-    // A query the module gives an address moves the page there, so a reload or Back invokes it again.
-    // A command has no address, so its result is shown without changing the URL.
+    // A query moves the page to its address, the module's or else the shell's default one, so a reload
+    // or Back invokes it again. A command has no address, so its result is shown without changing the URL.
     if (frame.page && method === "POST") {
-      const address = module.linkToAddress(link);
+      const address = module.linkToAddress(link) ?? (response.family === "query" ? defaultAddressOf(link) : null);
       if (address !== null)
         this.window.history.pushState(null, "", pathOf(service, address));
     }
-    this.show(frame, element => module.render(element, response, this.hostFor(frame))
+    this.show(frame, element => (this.customisations.of(service).render ? module.render(element, response, this.hostFor(frame)) : null)
       ?? renderGeneric(element, response.body, this.hostFor(frame), response.feature));
   }
 

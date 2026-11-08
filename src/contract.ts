@@ -14,6 +14,9 @@ export interface ShellResponse {
   link: Link;
   // The feature that answered, qualified by its service.
   feature: string;
+  // The family of the feature that answered, as the backend's Featurewise-Family header says: "query",
+  // "command" or "worker", or null if it doesn't say.
+  family: string | null;
   status: number;
   // The media type, without parameters, such as "application/json".
   contentType: string;
@@ -36,8 +39,9 @@ export interface ServiceModule {
   // The link an address within the service stands for, such as "things" for the Things query, or null
   // if the address means nothing.
   addressToLink(address: string): Link | null;
-  // The address of a link, or null if it has none. Only queries have addresses: a reload invokes
-  // the link at the address again, and a command must never run twice that way.
+  // The address of a link, or null to leave it to the shell. Only queries have addresses: a reload invokes
+  // the link at the address again, and a command must never run twice that way. A query the module gives
+  // no address gets the shell's default one, such as "_/Things".
   linkToAddress(link: Link): string | null;
   // Renders the response into element, returning a function that clears it, or null if the module has
   // no handler for it, when the shell renders it generically.

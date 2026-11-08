@@ -27,7 +27,7 @@ export interface Call {
 }
 
 // A fetch that records each request and answers it with the next of the given responses.
-export function fetcher(...responses: { status?: number; contentType?: string; body: unknown }[]) {
+export function fetcher(...responses: { status?: number; contentType?: string; family?: string; body: unknown }[]) {
   const calls: Call[] = [];
   const fetch = async (url: string | URL | Request, init?: RequestInit) => {
     calls.push({
@@ -39,7 +39,10 @@ export function fetcher(...responses: { status?: number; contentType?: string; b
     const next = responses.shift() ?? { body: {} };
     return new Response(typeof next.body === "string" ? next.body : JSON.stringify(next.body), {
       status: next.status ?? 200,
-      headers: { "content-type": next.contentType ?? "application/json; charset=utf-8" }
+      headers: {
+        "content-type": next.contentType ?? "application/json; charset=utf-8",
+        ...(next.family ? { "featurewise-family": next.family } : {})
+      }
     });
   };
   return { fetch: fetch as typeof globalThis.fetch, calls };

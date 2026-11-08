@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import type { ServiceModule, ShellResponse } from "../src/contract.js";
 import { devAuth } from "../src/auth.js";
+import { storedCustomisations } from "../src/customisation.js";
 import { Shell, type ShellOptions } from "../src/shell.js";
 import { config, fetcher, module, signedIn, things } from "./fakes.js";
 
@@ -70,6 +71,31 @@ describe("the shell", () => {
     expect(location.pathname).toBe("/sample/things");
   });
 
+  it("gives a query the module has no address for the shell's default one, and loads it again from there", async () => {
+    const { fetch, calls } = fetcher({ body: thingsResult }, { family: "query", body: {} }, { body: {} });
+    const theShell = shell(module(), fetch);
+    await theShell.start();
+    const search = { $feature: "sample/SearchThings", Name: "Tea" };
+
+    await theShell.follow(search);
+    expect(location.pathname + decodeURIComponent(location.search)).toBe('/sample/_/SearchThings?link={"Name":"Tea"}');
+
+    await theShell.load();
+    expect(calls[2]!.method).toBe("GET");
+    expect(calls[2]!.url).toBe(`/api/sample/SearchThings?link=${encodeURIComponent(JSON.stringify(search))}`);
+  });
+
+  it("gives no address to a command, or to a feature whose family the backend doesn't say", async () => {
+    const { fetch } = fetcher({ body: thingsResult }, { family: "command", body: {} }, { body: {} });
+    const theShell = shell(module(), fetch);
+    await theShell.start();
+
+    await theShell.follow({ $feature: "sample/RenameThing", Id: "t1" });
+    await theShell.follow({ $feature: "sample/SearchThings", Name: "Tea" });
+
+    expect(location.pathname).toBe("/sample/things");
+  });
+
   it("toasts a problem's detail and leaves the page as it was", async () => {
     const { fetch } = fetcher(
       { body: thingsResult },
@@ -132,7 +158,39 @@ describe("the shell", () => {
     await theShell.openServices();
 
     expect(location.pathname).toBe("/_shell/services");
-    expect(main.querySelector("td:last-child")!.textContent).toBe("http://localhost/api/sample");
+    expect(main.querySelector("td:nth-child(2)")!.textContent).toBe("http://localhost/api/sample");
+  });
+
+  it("renders generically when the module's rendering is turned off", async () => {
+    localStorage.clear();
+    const customisations = storedCustomisations();
+    customisations.set("sample", { render: false });
+    const { fetch } = fetcher({ body: thingsResult }, { body: thingsResult });
+    const custom = module(element => {
+      element.textContent = "handled";
+      return () => {};
+    });
+    const theShell = shell(custom, fetch, { customisations });
+    await theShell.start();
+
+    await theShell.follow(things);
+
+    expect(main.textContent).toContain("Teapot");
+    localStorage.clear();
+  });
+
+  it("turns a module's rendering on and off on its services page", async () => {
+    localStorage.clear();
+    const customisations = storedCustomisations();
+    await shell(module(), fetcher().fetch, { customisations }).openServices();
+
+    const render = main.querySelector<HTMLInputElement>("input[name=sample-render]")!;
+    expect(render.checked).toBe(true);
+    render.checked = false;
+    render.dispatchEvent(new Event("change"));
+
+    expect(customisations.of("sample")).toEqual({ render: false });
+    localStorage.clear();
   });
 
   it("says so when an address means nothing to the service", async () => {

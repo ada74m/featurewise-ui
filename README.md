@@ -6,11 +6,11 @@ The shell is plain TypeScript with no framework and no runtime dependencies, so 
 
 ## How it works
 
-- **Addresses.** `/sample/things` is the service `sample` at the address `things`. The module says which link an address stands for (`addressToLink`), and which address a link has (`linkToAddress`). Only queries have addresses, so a reload never runs a command again. `/` goes to the default address in `services.json`, and the shell's own pages are under `/_shell/`.
+- **Addresses.** `/sample/things` is the service `sample` at the address `things`. The module says which link an address stands for (`addressToLink`), and which address a link has (`linkToAddress`). A query the module gives no address gets the shell's default one, `_/` and the feature's name with the rest of the link as JSON, as in `/demos/_/ItemsFoundAt?link={"Station":"Leeds"}`. The shell knows a query from the backend's `Featurewise-Family` header. Only queries have addresses, so a reload never runs a command again. `/` goes to the default address in `services.json`, and the shell's own pages are under `/_shell/`.
 - **Invoking.** Following a link posts it to `{bff}/{feature}`, with the signed-in user's token and an idempotency key. Loading an address, as on the first visit, a reload or Back, gets `{bff}/{feature}?link=<the link's JSON>`, which the backend allows only for queries. The service comes from the link's `$feature`, as in `sample/DeleteThing`.
 - **Results.** A result is `application/json`. The shell asks the module to render it, and if the module has no handler, renders it generically: every value as nested lists, and every link as a button named after its property, such as `LinkToDelete`. A button opens the link's JSON to edit and follow. A field still to be supplied shows as null, and you type over it.
 - **Errors** are `application/problem+json`, which the shell handles itself, leaving the page as it was: 401 asks you to sign in, 403 says you may not, a 5xx or no answer says something went wrong, and anything else shows the problem's detail.
-- **The pill,** top right until you drag it, shows who's signed in, with a menu to switch user or log out, and a cog that opens `/_shell/services`, listing each service's backend.
+- **The pill,** top right until you drag it, shows who's signed in, with a menu to switch user or log out, and a cog that opens `/_shell/services`, listing each service's backend. There, each module's rendering can be turned off, to see the service as the generic shell shows it. The browser remembers the choice.
 
 ## The module contract
 
@@ -18,11 +18,11 @@ A module is an ES module whose default export is a `ServiceModule` (`src/contrac
 
 ```ts
 addressToLink(address: string): Link | null
-linkToAddress(link: Link): string | null       // null for commands
+linkToAddress(link: Link): string | null       // null for commands, or to leave a query to the shell's default address
 render(element: HTMLElement, response: ShellResponse, host: Host): (() => void) | null
 ```
 
-`render` renders into the element with whatever framework the module uses, and returns a function that clears it, or returns null to leave the response to the generic renderer. The response carries the `link` that was invoked, the `feature` that answered, the `status`, the `contentType` and the parsed `body`. `host` lends the module `follow(link)`, `toast(message)` and `embed(element, link, onResult)`, which shows another link's result inside the module's own component, keeping links followed there inside it.
+`render` renders into the element with whatever framework the module uses, and returns a function that clears it, or returns null to leave the response to the generic renderer. The response carries the `link` that was invoked, the `feature` that answered, its `family`, the `status`, the `contentType` and the parsed `body`. `host` lends the module `follow(link)`, `toast(message)` and `embed(element, link, onResult)`, which shows another link's result inside the module's own component, keeping links followed there inside it.
 
 ## Configuration
 

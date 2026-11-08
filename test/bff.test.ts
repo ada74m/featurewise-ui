@@ -32,6 +32,13 @@ describe("a request to a UI backend", () => {
     expect(call.headers["authorization"]).toBeUndefined();
   });
 
+  it("reads the family of the feature that answered, or null if the backend doesn't say", async () => {
+    const { fetch } = fetcher({ family: "command", body: { $case: "Deleted" } }, { body: {} });
+
+    expect((await invoke("/api/sample", link, "POST", null, fetch)).family).toBe("command");
+    expect((await invoke("/api/sample", link, "POST", null, fetch)).family).toBeNull();
+  });
+
   it("reads a problem by its content type", async () => {
     const { fetch } = fetcher({ status: 404, contentType: "application/problem+json", body: { title: "Not found", status: 404, detail: "no" } });
 
