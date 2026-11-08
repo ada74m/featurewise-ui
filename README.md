@@ -51,7 +51,9 @@ A persona with a `demo` belongs to that demo, the first part of an address withi
 - a private S3 bucket for the shell's files, `services.json`, which it writes from those inputs, and each service's module, which the service uploads under `modules/<id>/`;
 - one CloudFront distribution that serves them, and routes `/api/<id>/*` to each service's UI backend with the prefix taken off and nothing cached, so the browser only ever talks to one origin. A CloudFront function sends any address that isn't a file to `index.html`.
 
-Its outputs are the shell's `url`, the `callback_url` the identity provider's client must allow, and the `bucket` services upload their modules to.
+An environment may also give it a `domain`: a host name, such as `demos.featurewise.dev`, and an ACM certificate for it in us-east-1. The distribution then answers to that name, and the outputs use it. The environment owns the DNS, so it validates the certificate and makes the alias records itself.
+
+Its outputs are the shell's `url`, the `callback_url` the identity provider's client must allow, and the `bucket` services upload their modules to; `url` and `callback_url` use the shell's domain if it has one. And the distribution's `distribution_domain_name` and `hosted_zone_id`, which an alias record names.
 
 `package.sh <version> <out-dir>` builds the package, `ui-<version>.zip`: the module and the built shell beside it. CI builds, tests, checks the Terraform and packages on every pull request and push, and each push to main publishes the package to the estate's artifacts bucket as `ui/<version>.zip`, tagging the commit `ui/<version>`, once the repository has the variables `AWS_REGION`, `ARTIFACTS_BUCKET` and `PUBLISH_ROLE_ARN` from `featurewise-environments`' bootstrap.
 

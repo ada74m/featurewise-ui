@@ -9,6 +9,8 @@
 data "aws_caller_identity" "current" {}
 
 locals {
+  host = var.domain == null ? aws_cloudfront_distribution.shell.domain_name : var.domain.name
+
   dist = "${path.module}/../dist"
 
   content_types = {
@@ -149,6 +151,7 @@ resource "aws_cloudfront_distribution" "shell" {
   comment             = "${var.name_prefix} UI shell"
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
+  aliases             = var.domain == null ? [] : [var.domain.name]
 
   origin {
     origin_id                = "shell"
@@ -209,6 +212,9 @@ resource "aws_cloudfront_distribution" "shell" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = true
+    cloudfront_default_certificate = var.domain == null
+    acm_certificate_arn            = var.domain == null ? null : var.domain.certificate_arn
+    ssl_support_method             = var.domain == null ? null : "sni-only"
+    minimum_protocol_version       = var.domain == null ? "TLSv1" : "TLSv1.2_2021"
   }
 }

@@ -47,3 +47,12 @@ variable "demos" {
   type        = any
   default     = []
 }
+
+variable "domain" {
+  description = "The shell's own host name, such as demos.featurewise.dev, and an ACM certificate for it, which CloudFront needs in us-east-1. The environment owns the DNS: it validates the certificate and points the name at the distribution (see the hosted_zone_id output). Without one, the shell is at its CloudFront address."
+  type = object({
+    name            = string
+    certificate_arn = string
+  })
+  default = null
+}
