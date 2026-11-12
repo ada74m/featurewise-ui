@@ -5,10 +5,10 @@ import type { Link } from "./contract.js";
 
 // Above a demo's pages: what the demo is, the story its data tells so far, what to try, who the visitor
 // is with a button for each of the demo's other personas, and a button that starts the demo again. A
-// persona named in the text to try is a button too. The demo is the signed-in persona's, on any of a
-// service's pages, whatever its address. With nobody signed in, or someone who belongs to no demo, it's
-// the first part of the address within the service, such as lost-property in
-// /demos/lost-property/unclaimed-items. Anywhere else, and on the shell's own pages, the panel is hidden. The story and what to try can be folded away, and stay as the visitor left them.
+// persona named in the text to try is a button too. Each demo is a service of its own, so the demo is
+// the service whose page it is, such as lost-property on /lost-property/unclaimed-items, whatever the
+// address and whoever is signed in. On another service's pages, and on the shell's own, the panel is
+// hidden. The story and what to try can be folded away, and stay as the visitor left them.
 export function renderDemoPanel(
   element: HTMLElement,
   demos: DemoConfig[],
@@ -17,8 +17,7 @@ export function renderDemoPanel(
   reset: (link: Link) => void,
   storage: Storage = localStorage
 ): void {
-  const signedInAs = auth.personas().find(persona => persona.id === auth.current()?.username);
-  const id = place.kind !== "service" ? undefined : signedInAs?.demo ?? place.address.split(/[/?]/)[0];
+  const id = place.kind === "service" ? place.service : undefined;
   const personas = id ? auth.personas().filter(persona => persona.demo === id) : [];
   const demo = demos.find(demo => demo.id === id) ?? (personas.length ? { id: id! } : undefined);
   element.hidden = !demo;

@@ -29,7 +29,7 @@ describe("services.json", () => {
     expect(() => readConfig({ default: "/", services: {}, personas: [{ label: "Nobody" }] })).toThrow();
   });
 
-  it("refuses two personas with one id, since a persona says which demo the visitor is in", () => {
+  it("refuses two personas with one id, since a persona is named by its id alone", () => {
     expect(() => readConfig({
       default: "/", services: {},
       demos: [{ id: "a", personas: [{ id: "staff" }] }, { id: "b", personas: [{ id: "staff" }] }]

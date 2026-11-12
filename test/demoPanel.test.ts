@@ -20,7 +20,7 @@ describe("the demo panel", () => {
     { id: "clerk", label: "Clerk", demo: "lost-property", groups: ["clerk"] },
     { id: "theatregoer", label: "Theatregoer", demo: "box-office" }
   ];
-  const lostProperty = { kind: "service", service: "demos", address: "lost-property/unclaimed-items" } as const;
+  const lostProperty = { kind: "service", service: "lost-property", address: "unclaimed-items" } as const;
   let panel: HTMLElement;
   let resets: Link[];
 
@@ -53,14 +53,20 @@ describe("the demo panel", () => {
     expect(auth.current()?.username).toBe("clerk");
   });
 
-  it("is the signed-in persona's demo, whatever the address", () => {
+  it("is the demo whose service the page belongs to, whatever the address and whoever is signed in", () => {
     const auth = devAuth(personas);
-    auth.signInAs(personas[1]!);
+    auth.signInAs(personas[2]!);
 
-    render(auth, { kind: "service", service: "demos", address: "_/ItemsFoundAt" });
+    render(auth, { kind: "service", service: "lost-property", address: "_/ItemsFoundAt" });
 
     expect(panel.hidden).toBe(false);
     expect(panel.querySelector(".fw-demo-title")!.textContent).toContain("The lost property office");
+  });
+
+  it("shows for a visitor who isn't signed in yet", () => {
+    render(devAuth(personas), { kind: "service", service: "lost-property", address: "_/DonatedToCharity" });
+
+    expect(panel.hidden).toBe(false);
   });
 
   it("is hidden on the shell's own pages, even for a persona", () => {

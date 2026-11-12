@@ -94,7 +94,7 @@ export function readConfig(json: unknown): ShellConfig {
   const demoPersonas = (config.demos ?? []).flatMap(demo => (demo.personas ?? []).map(persona => ({ ...persona, demo: demo.id })));
   if (demoPersonas.length)
     config.personas = [...(config.personas ?? []), ...demoPersonas];
-  // The demo panel tells which demo the visitor is in from their persona, so each persona is one.
+  // A persona is named by its id alone, by ?as= and by the sign-in's login_hint, so no id may be two.
   const ids = (config.personas ?? []).map(persona => persona.id);
   const repeated = ids.find((id, index) => ids.indexOf(id) !== index);
   if (repeated !== undefined)
