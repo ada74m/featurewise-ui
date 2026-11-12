@@ -193,6 +193,37 @@ describe("the shell", () => {
     localStorage.clear();
   });
 
+  it("shows a service plain or dressed as ?view= says, remembers it, and leaves it out of the address", async () => {
+    localStorage.clear();
+    const customisations = storedCustomisations();
+    const { fetch } = fetcher({ body: thingsResult }, { body: thingsResult });
+    const custom = module(element => {
+      element.textContent = "handled";
+      return () => {};
+    });
+    history.replaceState(null, "", "/sample/things?view=plain");
+
+    await shell(custom, fetch, { customisations }).start();
+    expect(location.pathname + location.search).toBe("/sample/things");
+    expect(main.textContent).toContain("Teapot");
+    expect(customisations.of("sample").render).toBe(false);
+
+    history.replaceState(null, "", "/sample/things?view=dressed");
+    await shell(custom, fetch, { customisations }).load();
+    expect(main.textContent).toBe("handled");
+    localStorage.clear();
+  });
+
+  it("says so when ?view= names no view, and loads the page anyway", async () => {
+    const { fetch } = fetcher({ body: thingsResult });
+    history.replaceState(null, "", "/sample/things?view=fancy");
+
+    await shell(module(), fetch).start();
+
+    expect(toasts).toContain("There's no view called fancy: it's plain or dressed.");
+    expect(main.textContent).toContain("Teapot");
+  });
+
   it("says so when an address means nothing to the service", async () => {
     history.replaceState(null, "", "/sample/nowhere");
 

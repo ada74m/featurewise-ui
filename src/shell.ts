@@ -60,8 +60,22 @@ export class Shell {
   async load(): Promise<void> {
     const { pathname, search } = this.window.location;
 
-    // ?as=<persona>, as in a link from the book, becomes that persona first, and leaves the address.
+    // ?view=plain or ?view=dressed, as in a link from the book, turns the service's module's rendering
+    // off or on, as its services page does, and leaves the address.
     const query = new URLSearchParams(search);
+    const view = query.get("view");
+    if (view !== null) {
+      query.delete("view");
+      this.window.history.replaceState(null, "", `${pathname}${query.size ? `?${query}` : ""}`);
+      const place = placeOf(pathname);
+      if (view !== "plain" && view !== "dressed")
+        this.options.toaster.show(`There's no view called ${view}: it's plain or dressed.`);
+      else if (place.kind === "service")
+        this.customisations.set(place.service, { render: view === "dressed" });
+      return this.load();
+    }
+
+    // ?as=<persona>, as in a link from the book, becomes that persona first, and leaves the address.
     const as = query.get("as");
     if (as !== null) {
       query.delete("as");
