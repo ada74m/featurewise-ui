@@ -66,4 +66,40 @@ describe("the pill", () => {
     expect(element.shadowRoot!.querySelector("style")).not.toBeNull();
     expect(document.head.querySelector("style")).toBeNull();
   });
+
+  describe("with demos", () => {
+    const demos = [{ id: "lost-property", title: "The lost property office" }, { id: "box-office", title: "The theatre box office" }];
+    const personas = [
+      { id: "traveller", label: "Traveller", demo: "lost-property" },
+      { id: "clerk", label: "Clerk", demo: "lost-property" },
+      { id: "theatregoer", label: "Theatregoer", demo: "box-office" }
+    ];
+
+    function demoPill() {
+      const element = document.createElement("featurewise-pill") as Pill;
+      document.body.append(element);
+      element.attach(devAuth(personas), () => {}, demos);
+      const menu = () => element.shadowRoot!.getElementById("menu")!;
+      const offered = () => [...menu().querySelectorAll("button")].map(button => button.textContent);
+      return { element, menu, offered };
+    }
+
+    it("offers only the demo's personas on its pages", () => {
+      const { element, offered } = demoPill();
+
+      element.showingService("box-office");
+
+      expect(offered()).toEqual(["Theatregoer"]);
+    });
+
+    it("offers every persona, under its demo's title, on a page that belongs to no demo", () => {
+      const { element, menu, offered } = demoPill();
+
+      element.showingService("sample");
+
+      expect(offered()).toEqual(["Traveller", "Clerk", "Theatregoer"]);
+      expect([...menu().querySelectorAll(".demo")].map(title => title.textContent))
+        .toEqual(["The lost property office", "The theatre box office"]);
+    });
+  });
 });

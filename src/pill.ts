@@ -1,8 +1,9 @@
 import type { Auth } from "./auth.js";
-import { labelOf } from "./config.js";
+import { labelOf, type DemoConfig, type Persona } from "./config.js";
 
 // The shell's own controls: who's signed in, with a menu to switch user or log out, and a cog that
-// opens the services page. It floats in the top right corner until dragged, and remembers where it was
+// opens the services page. On a demo's pages, the menu offers that demo's personas; elsewhere, every
+// persona, under its demo's title. It floats in the top right corner until dragged, and remembers where it was
 // put. Its styles live in its shadow root, so a module's styles don't reach it and its don't reach
 // modules; the shell's custom properties, such as --fw-accent, still do.
 
@@ -20,12 +21,16 @@ const styles = `
               color: var(--fw-text, #222); box-shadow: 0 2px 8px rgba(0, 0, 0, .25); font: inherit; }
   [popover] button { display: block; width: 100%; text-align: left; border-radius: 4px; }
   .current { font-weight: 600; }
+  .demo { padding: 4px 8px 2px; color: var(--fw-muted, #888); font-size: .85em; }
   hr { border: none; border-top: 1px solid var(--fw-border, #ddd); margin: 4px 0; }
 `;
 
 export class Pill extends HTMLElement {
   private auth: Auth | null = null;
   private openSettings: () => void = () => {};
+  private demos: DemoConfig[] = [];
+  // The demo whose page is showing, the service's id, if the page is a service's.
+  private demo: string | undefined;
   private readonly root: ShadowRoot;
 
   constructor() {
@@ -33,13 +38,22 @@ export class Pill extends HTMLElement {
     this.root = this.attachShadow({ mode: "open" });
   }
 
-  attach(auth: Auth, openSettings: () => void): void {
+  attach(auth: Auth, openSettings: () => void, demos: DemoConfig[] = []): void {
     this.auth = auth;
     this.openSettings = openSettings;
+    this.demos = demos;
     auth.onChange(() => this.renderPill());
     this.renderPill();
     this.restorePosition();
     window.addEventListener("resize", () => this.keepOnScreen());
+  }
+
+  // Says which service's page is showing, which is the demo of the same id, if there is one.
+  showingService(service: string | undefined): void {
+    if (service === this.demo)
+      return;
+    this.demo = service;
+    this.renderPill();
   }
 
   // Opens the user menu, as when a request needs someone signed in.
@@ -84,13 +98,30 @@ export class Pill extends HTMLElement {
     const menu = document.createElement("div");
     menu.id = "menu";
     menu.setAttribute("popover", "");
-    for (const persona of auth.personas()) {
-      const item = document.createElement("button");
-      item.textContent = persona.groups?.length ? `${labelOf(persona)} (${persona.groups.join(", ")})` : labelOf(persona);
+    const item = (persona: Persona) => {
+      const button = document.createElement("button");
+      button.textContent = persona.groups?.length ? `${labelOf(persona)} (${persona.groups.join(", ")})` : labelOf(persona);
       if (persona.id === user?.username)
-        item.className = "current";
-      item.addEventListener("click", () => auth.signInAs(persona));
-      menu.append(item);
+        button.className = "current";
+      button.addEventListener("click", () => auth.signInAs(persona));
+      return button;
+    };
+    const ofThisDemo = auth.personas().filter(persona => persona.demo !== undefined && persona.demo === this.demo);
+    if (ofThisDemo.length)
+      menu.append(...ofThisDemo.map(item));
+    else {
+      // Every persona, each demo's under its title, as they come.
+      let heading: string | undefined;
+      for (const persona of auth.personas()) {
+        if (persona.demo !== undefined && persona.demo !== heading) {
+          heading = persona.demo;
+          const title = document.createElement("div");
+          title.className = "demo";
+          title.textContent = this.demos.find(demo => demo.id === heading)?.title ?? heading;
+          menu.append(title);
+        }
+        menu.append(item(persona));
+      }
     }
     if (user) {
       if (auth.personas().length)

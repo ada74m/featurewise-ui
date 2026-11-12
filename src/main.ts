@@ -38,9 +38,12 @@ async function main(): Promise<void> {
   const shell = new Shell({
     config, auth, main, toaster: toasts,
     needsSignIn: () => pill.openMenu(),
-    onPlace: place => renderDemoPanel(panel, config.demos ?? [], auth, place, link => void shell.runAndReload(link, "Started again from the beginning."))
+    onPlace: place => {
+      renderDemoPanel(panel, config.demos ?? [], auth, place, link => void shell.runAndReload(link, "Started again from the beginning."));
+      pill.showingService(place.kind === "service" ? place.service : undefined);
+    }
   });
-  pill.attach(auth, () => void shell.openServices());
+  pill.attach(auth, () => void shell.openServices(), config.demos ?? []);
   // What a user may do decides which links they're offered, so a new user sees the page afresh.
   auth.onChange(() => void shell.load());
   await shell.start();
