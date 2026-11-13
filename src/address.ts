@@ -30,12 +30,14 @@ export const shellPath = (page: string): string => `/${shellPrefix}/${page}`;
 
 // The shell's own address for a query whose module gives it none: "_/" and the feature's name, with the
 // rest of the link as JSON, as in "_/ItemsFoundAt?link={"Station":"Leeds"}". It's the backend's GET
-// convention, so it means exactly the link. A module's addresses can't start with "_/".
+// convention, so it means exactly the link. A module's addresses can't start with "_/". It leaves out
+// CausedBy, which Featurewise stamps on a link to record the invocation that made it: loading an address
+// starts afresh, caused by nothing earlier, and it's no argument of the feature's.
 const defaultPrefix = "_/";
 
 export function defaultAddressOf(link: Link): string {
   const [, name] = featureOf(link);
-  const { $feature: _, ...rest } = link;
+  const { $feature: _, CausedBy: __, ...rest } = link;
   const json = JSON.stringify(rest);
   return `${defaultPrefix}${encodeURIComponent(name)}${json === "{}" ? "" : `?link=${encodeURIComponent(json)}`}`;
 }

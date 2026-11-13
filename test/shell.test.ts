@@ -96,6 +96,50 @@ describe("the shell", () => {
     expect(location.pathname).toBe("/sample/things");
   });
 
+  it("lends a module the path of a link, for an href: the module's address, or else the shell's default", async () => {
+    const { fetch } = fetcher({ body: thingsResult });
+    const paths: (string | null)[] = [];
+    const asking = module((element, _, host) => {
+      paths.push(
+        host.pathOf(things),
+        host.pathOf({ $feature: "sample/SearchThings", Name: "Tea" }),
+        host.pathOf({ $feature: "elsewhere/Things" }),
+        host.pathOf({ $feature: "unqualified" }));
+      element.textContent = "asked";
+      return () => {};
+    });
+
+    await shell(asking, fetch).start();
+
+    expect(paths.map(path => path && decodeURIComponent(path))).toEqual(
+      ["/sample/things", '/sample/_/SearchThings?link={"Name":"Tea"}', null, null]);
+  });
+
+  it("gives a link to another service the path its module gives, once that module is loaded", async () => {
+    const { fetch } = fetcher({ body: thingsResult }, { body: {} }, { body: thingsResult });
+    const shop: ServiceModule = {
+      addressToLink: () => null,
+      linkToAddress: link => (link.$feature === "shop/Aisles" ? "aisles" : null),
+      render: () => null
+    };
+    const paths: (string | null)[] = [];
+    const asking = module((element, _, host) => {
+      paths.push(host.pathOf({ $feature: "shop/Aisles" }));
+      element.textContent = "asked";
+      return () => {};
+    });
+    const theShell = shell(asking, fetch, {
+      config: { ...config, services: { ...config.services, shop: { module: "/modules/shop/index.js", bff: "/api/shop" } } },
+      importModule: async url => ({ default: url.includes("/shop/") ? shop : asking })
+    });
+
+    await theShell.start();
+    await theShell.follow({ $feature: "shop/Aisles" });
+    await theShell.follow(things);
+
+    expect(paths).toEqual(["/shop/_/Aisles", "/shop/aisles"]);
+  });
+
   it("toasts a problem's detail and leaves the page as it was", async () => {
     const { fetch } = fetcher(
       { body: thingsResult },

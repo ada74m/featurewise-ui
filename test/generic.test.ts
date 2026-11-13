@@ -12,7 +12,7 @@ describe("the generic renderer", () => {
     element = document.createElement("div");
     document.body.append(element);
     followed = [];
-    host = { follow: link => followed.push(link), toast: () => {}, embed: () => () => {} };
+    host = { follow: link => followed.push(link), toast: () => {}, embed: () => () => {}, pathOf: () => null };
   });
 
   const result = {

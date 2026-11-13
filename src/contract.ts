@@ -32,6 +32,12 @@ export interface Host {
   // Shows the result of following link inside element. Links followed in there stay in there, and
   // onResult hears each result, as a picker's opener hears what was picked.
   embed(element: HTMLElement, link: Link, onResult?: (response: ShellResponse) => void): () => void;
+  // The path in the shell where loading a link to a query shows its result, as an anchor's href: the
+  // address its service's module gives it, if that module is loaded, or else the shell's default one,
+  // as in "/sample/things" or "/sample/_/SearchThings?link=…". It works for a link to any service the
+  // shell knows, and is null for one it doesn't. A link to a command has no path that works: loading it
+  // is refused.
+  pathOf(link: Link): string | null;
 }
 
 // A module's default export.

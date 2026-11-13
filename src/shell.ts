@@ -38,6 +38,8 @@ export interface ShellOptions {
 // invoke anything.
 export class Shell {
   private readonly modules = new Map<string, Promise<ServiceModule>>();
+  // The modules imported so far, for what has to be answered at once.
+  private readonly loaded = new Map<string, ServiceModule>();
   // The sign-in being finished at the callback, which a load meanwhile waits for rather than repeating.
   private signingIn: Promise<void> | null = null;
   private readonly page: Frame;
@@ -239,6 +241,7 @@ export class Shell {
     return {
       follow: link => void this.invokeIn(frame, link, "POST"),
       toast: text => this.options.toaster.show(text),
+      pathOf: link => this.pathOfLink(link),
       embed: (element, link, onResult) => {
         const embedded: Frame = { element, page: false, onResult };
         void this.invokeIn(embedded, link, "POST");
@@ -250,6 +253,20 @@ export class Shell {
     };
   }
 
+  // A component asks while it renders, so this can't wait for a module to load: a service whose module
+  // hasn't been needed yet gets the shell's default address, which loads the same link.
+  private pathOfLink(link: Link): string | null {
+    let service: string;
+    try {
+      [service] = featureOf(link);
+    } catch {
+      return null;
+    }
+    if (!this.options.config.services[service])
+      return null;
+    return pathOf(service, this.loaded.get(service)?.linkToAddress(link) ?? defaultAddressOf(link));
+  }
+
   private moduleOf(service: string): Promise<ServiceModule | null> {
     const config = this.options.config.services[service];
     if (!config)
@@ -258,7 +275,10 @@ export class Shell {
     let module = this.modules.get(service);
     if (!module) {
       const importModule = this.options.importModule ?? (url => import(/* @vite-ignore */ url));
-      module = importModule(new URL(config.module, this.window.location.href).href).then(m => m.default);
+      module = importModule(new URL(config.module, this.window.location.href).href).then(m => {
+        this.loaded.set(service, m.default);
+        return m.default;
+      });
       this.modules.set(service, module);
     }
     return module;
