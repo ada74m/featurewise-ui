@@ -1,4 +1,4 @@
-import { isLink, type Host, type Link } from "./contract.js";
+import { isLink, qualifiedFeatureOf, type Host, type Link } from "./contract.js";
 import { openLinkDialog } from "./linkDialog.js";
 
 // Renders any result as formatted JSON does, nested in braces and brackets, with each property named as
@@ -70,7 +70,7 @@ function linkButton(document: Document, label: string, link: Link, host: Host): 
   button.textContent = "open";
   // Which link it is, for a screen reader and on hover.
   button.setAttribute("aria-label", `Open ${label}`);
-  button.title = link.$feature;
+  button.title = qualifiedFeatureOf(link);
   button.addEventListener("click", () => openLinkDialog(document, label, link, host.follow));
   return button;
 }

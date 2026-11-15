@@ -1,5 +1,5 @@
 import { shellPrefix } from "./config.js";
-import { featureOf, type Link } from "./contract.js";
+import { argumentsOf, featureOf, linkTo, type Link } from "./contract.js";
 
 // Where a URL's path leads: a service and the address within it, a page of the shell's own, or the
 // default.
@@ -37,7 +37,7 @@ const defaultPrefix = "_/";
 
 export function defaultAddressOf(link: Link): string {
   const [, name] = featureOf(link);
-  const { $feature: _, CausedBy: __, ...rest } = link;
+  const { CausedBy: _, ...rest } = argumentsOf(link);
   const json = JSON.stringify(rest);
   return `${defaultPrefix}${encodeURIComponent(name)}${json === "{}" ? "" : `?link=${encodeURIComponent(json)}`}`;
 }
@@ -52,7 +52,6 @@ export function linkOfDefaultAddress(service: string, address: string): Link | n
   const parsed: unknown = json === null ? {} : JSON.parse(json);
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed))
     throw new Error("the address's link isn't a JSON object");
-  // The address names the feature, whatever the JSON says.
-  const { $feature: _, ...rest } = parsed as Record<string, unknown>;
-  return { $feature: `${service}/${decodeURIComponent(path)}`, ...rest };
+  // The address names the feature, whatever the JSON says, and only a query has an address.
+  return linkTo("query", `${service}/${decodeURIComponent(path)}`, argumentsOf(parsed as Link));
 }

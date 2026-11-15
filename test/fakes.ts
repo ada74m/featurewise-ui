@@ -8,13 +8,13 @@ export const config: ShellConfig = {
   devUsers: [{ username: "ann", groups: ["editor"] }, { username: "bob" }]
 };
 
-export const things: Link = { $feature: "sample/Things" };
+export const things: Link = { $query: "sample/Things" };
 
 // A module that gives Things the address "things", and renders nothing itself unless told to.
 export function module(render: ServiceModule["render"] = () => null): ServiceModule {
   return {
     addressToLink: address => (address === "things" ? things : null),
-    linkToAddress: link => (link.$feature === "sample/Things" ? "things" : null),
+    linkToAddress: link => (link.$query === "sample/Things" ? "things" : null),
     render
   };
 }

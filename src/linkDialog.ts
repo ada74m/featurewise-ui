@@ -1,4 +1,4 @@
-import { isLink, type Link } from "./contract.js";
+import { isLink, qualifiedFeatureOf, type Link } from "./contract.js";
 
 // Shows a link as JSON that can be edited, with a Follow button. It's how the generic UI follows a
 // link: a field still to be supplied shows as null, and the developer types over it.
@@ -7,7 +7,7 @@ export function openLinkDialog(document: Document, label: string, link: Link, fo
   dialog.className = "fw-link-dialog";
 
   const heading = document.createElement("h2");
-  heading.textContent = `${label} (${link.$feature})`;
+  heading.textContent = `${label} (${qualifiedFeatureOf(link)})`;
 
   const editor = document.createElement("textarea");
   editor.value = JSON.stringify(link, null, 2);
@@ -27,7 +27,7 @@ export function openLinkDialog(document: Document, label: string, link: Link, fo
       return;
     }
     if (!isLink(edited)) {
-      error.textContent = "A link must be an object with a $feature.";
+      error.textContent = "A link must be an object that names its feature in $query, $command or $worker.";
       return;
     }
     dialog.close();

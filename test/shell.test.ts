@@ -29,7 +29,7 @@ describe("the shell", () => {
     });
   }
 
-  const thingsResult = { Things: [{ Thing: { Id: "t1", Name: "Teapot" }, LinkToDelete: { $feature: "sample/DeleteThing", Id: "t1" } }] };
+  const thingsResult = { Things: [{ Thing: { Id: "t1", Name: "Teapot" }, LinkToDelete: { $command: "sample/DeleteThing", Id: "t1" } }] };
 
   it("goes from / to the default address, and loads its link by GET", async () => {
     const { fetch, calls } = fetcher({ body: thingsResult });
@@ -63,7 +63,7 @@ describe("the shell", () => {
     await theShell.start();
     history.replaceState(null, "", "/sample/elsewhere");
 
-    await theShell.follow({ $feature: "sample/DeleteThing", Id: "t1" });
+    await theShell.follow({ $command: "sample/DeleteThing", Id: "t1" });
     expect(location.pathname).toBe("/sample/elsewhere");
     expect(calls[1]!.method).toBe("POST");
 
@@ -75,7 +75,7 @@ describe("the shell", () => {
     const { fetch, calls } = fetcher({ body: thingsResult }, { family: "query", body: {} }, { body: {} });
     const theShell = shell(module(), fetch);
     await theShell.start();
-    const search = { $feature: "sample/SearchThings", Name: "Tea" };
+    const search = { $query: "sample/SearchThings", Name: "Tea" };
 
     await theShell.follow(search);
     expect(location.pathname + decodeURIComponent(location.search)).toBe('/sample/_/SearchThings?link={"Name":"Tea"}');
@@ -85,13 +85,23 @@ describe("the shell", () => {
     expect(calls[2]!.url).toBe(`/api/sample/SearchThings?link=${encodeURIComponent(JSON.stringify(search))}`);
   });
 
-  it("gives no address to a command, or to a feature whose family the backend doesn't say", async () => {
-    const { fetch } = fetcher({ body: thingsResult }, { family: "command", body: {} }, { body: {} });
+  it("follows a link to a query with a GET, and a link to a command with a POST", async () => {
+    const { fetch, calls } = fetcher({ body: thingsResult }, { body: thingsResult }, { body: {} });
     const theShell = shell(module(), fetch);
     await theShell.start();
 
-    await theShell.follow({ $feature: "sample/RenameThing", Id: "t1" });
-    await theShell.follow({ $feature: "sample/SearchThings", Name: "Tea" });
+    await theShell.follow(things);
+    await theShell.follow({ $command: "sample/DeleteThing", Id: "t1" });
+
+    expect(calls.map(call => call.method)).toEqual(["GET", "GET", "POST"]);
+  });
+
+  it("gives no address to a command", async () => {
+    const { fetch } = fetcher({ body: thingsResult }, { body: {} });
+    const theShell = shell(module(), fetch);
+    await theShell.start();
+
+    await theShell.follow({ $command: "sample/RenameThing", Id: "t1" });
 
     expect(location.pathname).toBe("/sample/things");
   });
@@ -102,9 +112,9 @@ describe("the shell", () => {
     const asking = module((element, _, host) => {
       paths.push(
         host.pathOf(things),
-        host.pathOf({ $feature: "sample/SearchThings", Name: "Tea" }),
-        host.pathOf({ $feature: "elsewhere/Things" }),
-        host.pathOf({ $feature: "unqualified" }));
+        host.pathOf({ $query: "sample/SearchThings", Name: "Tea" }),
+        host.pathOf({ $query: "elsewhere/Things" }),
+        host.pathOf({ $query: "unqualified" }));
       element.textContent = "asked";
       return () => {};
     });
@@ -119,12 +129,12 @@ describe("the shell", () => {
     const { fetch } = fetcher({ body: thingsResult }, { body: {} }, { body: thingsResult });
     const shop: ServiceModule = {
       addressToLink: () => null,
-      linkToAddress: link => (link.$feature === "shop/Aisles" ? "aisles" : null),
+      linkToAddress: link => (link.$query === "shop/Aisles" ? "aisles" : null),
       render: () => null
     };
     const paths: (string | null)[] = [];
     const asking = module((element, _, host) => {
-      paths.push(host.pathOf({ $feature: "shop/Aisles" }));
+      paths.push(host.pathOf({ $query: "shop/Aisles" }));
       element.textContent = "asked";
       return () => {};
     });
@@ -134,7 +144,7 @@ describe("the shell", () => {
     });
 
     await theShell.start();
-    await theShell.follow({ $feature: "shop/Aisles" });
+    await theShell.follow({ $query: "shop/Aisles" });
     await theShell.follow(things);
 
     expect(paths).toEqual(["/shop/_/Aisles", "/shop/aisles"]);
@@ -147,7 +157,7 @@ describe("the shell", () => {
     const theShell = shell(module(), fetch);
     await theShell.start();
 
-    await theShell.follow({ $feature: "sample/Nothing" });
+    await theShell.follow({ $command: "sample/Nothing" });
 
     expect(toasts).toEqual(["there is no feature named Nothing"]);
     expect(main.textContent).toContain("Teapot");
@@ -160,8 +170,8 @@ describe("the shell", () => {
     const theShell = shell(module(), fetch, { needsSignIn: () => { signInAsked = true; } });
     await theShell.start();
 
-    await theShell.follow({ $feature: "sample/DeleteThing", Id: "t1" });
-    await theShell.follow({ $feature: "sample/DeleteThing", Id: "t1" });
+    await theShell.follow({ $command: "sample/DeleteThing", Id: "t1" });
+    await theShell.follow({ $command: "sample/DeleteThing", Id: "t1" });
 
     expect(signInAsked).toBe(true);
     expect(toasts).toEqual(["Sign in to do that.", "You may not do that."]);
@@ -184,7 +194,7 @@ describe("the shell", () => {
         return null;
       embedded = element.ownerDocument.createElement("div");
       element.append(embedded);
-      host.embed(embedded, { $feature: "sample/Picker" }, picked => heard.push(picked));
+      host.embed(embedded, { $query: "sample/Picker" }, picked => heard.push(picked));
       return () => {};
     });
 
@@ -351,7 +361,7 @@ describe("the shell", () => {
     const theShell = shell(module(), fetch);
     await theShell.start();
 
-    await theShell.runAndReload({ $feature: "sample/ResetDemo", Demo: "sample" }, "Started again.");
+    await theShell.runAndReload({ $command: "sample/ResetDemo", Demo: "sample" }, "Started again.");
 
     expect(calls.map(call => call.method)).toEqual(["GET", "POST", "GET"]);
     expect(toasts).toEqual(["Started again."]);

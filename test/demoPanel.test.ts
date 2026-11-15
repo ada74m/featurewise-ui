@@ -5,7 +5,7 @@ import type { Link } from "../src/contract.js";
 import { renderDemoPanel } from "../src/demoPanel.js";
 
 describe("the demo panel", () => {
-  const reset: Link = { $feature: "demos/ResetDemo", Demo: "lost-property" };
+  const reset: Link = { $command: "demos/ResetDemo", Demo: "lost-property" };
   const demos: DemoConfig[] = [{
     id: "lost-property",
     title: "The lost property office",

@@ -1,10 +1,17 @@
 // The contract between the shell and a service's module. It's all a module needs to know about the
 // shell, and it depends on no front-end framework, so a module can use any.
 
+// A feature's family, which says what following a link to it will do: a query only fetches
+// information, and is safe to repeat; a command changes something; nobody follows a link to a worker.
+export type Family = "query" | "command" | "worker";
+
 // A link: a feature's arguments, with the feature it names, qualified by its service, as in
-// "sample/DeleteThing". Anything else in it is the feature's arguments.
+// "sample/DeleteThing", in the one property that says the feature's family: $query, $command or $worker.
+// Anything else in it is the feature's arguments.
 export interface Link {
-  $feature: string;
+  $query?: string;
+  $command?: string;
+  $worker?: string;
   [argument: string]: unknown;
 }
 
@@ -14,9 +21,8 @@ export interface ShellResponse {
   link: Link;
   // The feature that answered, qualified by its service.
   feature: string;
-  // The family of the feature that answered, as the backend's Featurewise-Family header says: "query",
-  // "command" or "worker", or null if it doesn't say.
-  family: string | null;
+  // The family of the feature that answered, as the link said.
+  family: Family;
   status: number;
   // The media type, without parameters, such as "application/json".
   contentType: string;
@@ -54,15 +60,44 @@ export interface ServiceModule {
   render(element: HTMLElement, response: ShellResponse, host: Host): (() => void) | null;
 }
 
+const FAMILY_PROPERTIES = { query: "$query", command: "$command", worker: "$worker" } as const;
+const FAMILIES = Object.keys(FAMILY_PROPERTIES) as Family[];
+
+// The families a value names a feature in, by the properties it has.
+const namedFamilies = (value: object): Family[] =>
+  FAMILIES.filter(family => typeof (value as Record<string, unknown>)[FAMILY_PROPERTIES[family]] === "string");
+
+// A link names exactly one feature, in one of the three properties.
 export const isLink = (value: unknown): value is Link =>
-  typeof value === "object" && value !== null && !Array.isArray(value)
-  && typeof (value as { $feature?: unknown }).$feature === "string";
+  typeof value === "object" && value !== null && !Array.isArray(value) && namedFamilies(value).length === 1;
+
+// The family of a link's feature.
+export function familyOf(link: Link): Family {
+  const families = namedFamilies(link);
+  if (families.length !== 1)
+    throw new Error("a link names its feature once, in $query, $command or $worker");
+  return families[0]!;
+}
+
+// The feature a link names, qualified by its service, such as "sample/DeleteThing".
+export const qualifiedFeatureOf = (link: Link): string => link[FAMILY_PROPERTIES[familyOf(link)]] as string;
 
 // The service a link's feature belongs to, and the feature's own name: "sample/DeleteThing" is
 // ["sample", "DeleteThing"].
 export function featureOf(link: Link): [service: string, name: string] {
-  const slash = link.$feature.indexOf("/");
-  if (slash <= 0 || slash === link.$feature.length - 1)
-    throw new Error(`the link's feature isn't qualified by a service: ${link.$feature}`);
-  return [link.$feature.slice(0, slash), link.$feature.slice(slash + 1)];
+  const feature = qualifiedFeatureOf(link);
+  const slash = feature.indexOf("/");
+  if (slash <= 0 || slash === feature.length - 1)
+    throw new Error(`the link's feature isn't qualified by a service: ${feature}`);
+  return [feature.slice(0, slash), feature.slice(slash + 1)];
 }
+
+// A link's arguments, without the property that names its feature.
+export function argumentsOf(link: Link): Record<string, unknown> {
+  const { $query: _q, $command: _c, $worker: _w, ...args } = link;
+  return args;
+}
+
+// A link to a feature of the given family, qualified by its service, with the given arguments.
+export const linkTo = (family: Family, feature: string, args: Record<string, unknown> = {}): Link =>
+  ({ [FAMILY_PROPERTIES[family]]: feature, ...args });

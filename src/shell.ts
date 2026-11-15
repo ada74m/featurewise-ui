@@ -1,6 +1,6 @@
 import { defaultAddressOf, linkOfDefaultAddress, pathOf, placeOf, shellPath, type Place } from "./address.js";
 import type { Auth } from "./auth.js";
-import { invoke, isProblem, type Method, type Problem } from "./bff.js";
+import { invoke, isProblem, type Problem } from "./bff.js";
 import type { ShellConfig } from "./config.js";
 import { featureOf, type Host, type Link, type ServiceModule, type ShellResponse } from "./contract.js";
 import { storedCustomisations, type Customisations } from "./customisation.js";
@@ -124,7 +124,7 @@ export class Shell {
     }
     if (!link)
       return this.show(this.page, element => message(element, "There's nothing at this address."));
-    return this.invokeIn(this.page, link, "GET");
+    return this.invokeIn(this.page, link, true);
   }
 
   // The identity provider sends the user back here after signing in. Once the tokens are in hand, the
@@ -158,7 +158,7 @@ export class Shell {
     }
     let response: ShellResponse;
     try {
-      response = await invoke(config.bff, link, "POST", this.options.auth.current()?.token ?? null, this.options.fetcher);
+      response = await invoke(config.bff, link, this.options.auth.current()?.token ?? null, this.options.fetcher);
     } catch {
       this.options.toaster.show("Something went wrong. Try again.");
       return;
@@ -173,10 +173,12 @@ export class Shell {
 
   // Follows a link on the page, as a user's click does.
   follow(link: Link): Promise<void> {
-    return this.invokeIn(this.page, link, "POST");
+    return this.invokeIn(this.page, link);
   }
 
-  private async invokeIn(frame: Frame, link: Link, method: Method): Promise<void> {
+  // Invokes a link and shows its result in the frame. Loading an address shows what's already at it, so
+  // only following a link moves the page to a new address.
+  private async invokeIn(frame: Frame, link: Link, loadingAddress = false): Promise<void> {
     let service: string;
     try {
       [service] = featureOf(link);
@@ -193,7 +195,7 @@ export class Shell {
 
     let response: ShellResponse;
     try {
-      response = await invoke(config.bff, link, method, this.options.auth.current()?.token ?? null, this.options.fetcher);
+      response = await invoke(config.bff, link, this.options.auth.current()?.token ?? null, this.options.fetcher);
     } catch {
       this.options.toaster.show("Something went wrong. Try again.");
       return;
@@ -206,11 +208,8 @@ export class Shell {
     frame.onResult?.(response);
     // A query moves the page to its address, the module's or else the shell's default one, so a reload
     // or Back invokes it again. A command has no address, so its result is shown without changing the URL.
-    if (frame.page && method === "POST") {
-      const address = module.linkToAddress(link) ?? (response.family === "query" ? defaultAddressOf(link) : null);
-      if (address !== null)
-        this.window.history.pushState(null, "", pathOf(service, address));
-    }
+    if (frame.page && !loadingAddress && response.family === "query")
+      this.window.history.pushState(null, "", pathOf(service, module.linkToAddress(link) ?? defaultAddressOf(link)));
     this.show(frame, element => (this.customisations.of(service).render ? module.render(element, response, this.hostFor(frame)) : null)
       ?? renderGeneric(element, response.body, this.hostFor(frame), response.feature));
   }
@@ -239,12 +238,12 @@ export class Shell {
 
   private hostFor(frame: Frame): Host {
     return {
-      follow: link => void this.invokeIn(frame, link, "POST"),
+      follow: link => void this.invokeIn(frame, link),
       toast: text => this.options.toaster.show(text),
       pathOf: link => this.pathOfLink(link),
       embed: (element, link, onResult) => {
         const embedded: Frame = { element, page: false, onResult };
-        void this.invokeIn(embedded, link, "POST");
+        void this.invokeIn(embedded, link);
         return () => {
           embedded.clear?.();
           element.replaceChildren();

@@ -22,21 +22,21 @@ describe("a URL's path", () => {
 
 describe("the shell's default address for a query", () => {
   it("is the feature's name, with the rest of the link as JSON", () => {
-    const address = defaultAddressOf({ $feature: "demos/ItemsFoundAt", Station: "Leeds" });
+    const address = defaultAddressOf({ $query: "demos/ItemsFoundAt", Station: "Leeds" });
 
     expect(address).toBe(`_/ItemsFoundAt?link=${encodeURIComponent('{"Station":"Leeds"}')}`);
-    expect(linkOfDefaultAddress("demos", address)).toEqual({ $feature: "demos/ItemsFoundAt", Station: "Leeds" });
+    expect(linkOfDefaultAddress("demos", address)).toEqual({ $query: "demos/ItemsFoundAt", Station: "Leeds" });
   });
 
   it("leaves out the invocation that made the link", () => {
-    expect(defaultAddressOf({ $feature: "demos/ItemsFoundAt", Station: "Leeds", CausedBy: "00-4bf9-00f0-01" }))
+    expect(defaultAddressOf({ $query: "demos/ItemsFoundAt", Station: "Leeds", CausedBy: "00-4bf9-00f0-01" }))
       .toBe(`_/ItemsFoundAt?link=${encodeURIComponent('{"Station":"Leeds"}')}`);
-    expect(defaultAddressOf({ $feature: "demos/DonatedToCharity", CausedBy: "00-4bf9-00f0-01" })).toBe("_/DonatedToCharity");
+    expect(defaultAddressOf({ $query: "demos/DonatedToCharity", CausedBy: "00-4bf9-00f0-01" })).toBe("_/DonatedToCharity");
   });
 
   it("is just the feature's name when the link has no arguments", () => {
-    expect(defaultAddressOf({ $feature: "demos/UnclaimedItems" })).toBe("_/UnclaimedItems");
-    expect(linkOfDefaultAddress("demos", "_/UnclaimedItems")).toEqual({ $feature: "demos/UnclaimedItems" });
+    expect(defaultAddressOf({ $query: "demos/UnclaimedItems" })).toBe("_/UnclaimedItems");
+    expect(linkOfDefaultAddress("demos", "_/UnclaimedItems")).toEqual({ $query: "demos/UnclaimedItems" });
   });
 
   it("isn't any address a module gives", () => {
@@ -44,9 +44,9 @@ describe("the shell's default address for a query", () => {
   });
 
   it("names the feature in its path, whatever its JSON says", () => {
-    const address = `_/UnclaimedItems?link=${encodeURIComponent('{"$feature":"other/Secrets"}')}`;
+    const address = `_/UnclaimedItems?link=${encodeURIComponent('{"$command":"other/Secrets"}')}`;
 
-    expect(linkOfDefaultAddress("demos", address)).toEqual({ $feature: "demos/UnclaimedItems" });
+    expect(linkOfDefaultAddress("demos", address)).toEqual({ $query: "demos/UnclaimedItems" });
   });
 
   it("doesn't make a link when its JSON isn't an object", () => {

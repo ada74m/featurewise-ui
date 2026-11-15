@@ -1,16 +1,17 @@
-import { featureOf, type Link, type ShellResponse } from "./contract.js";
+import { familyOf, featureOf, qualifiedFeatureOf, type Link, type ShellResponse } from "./contract.js";
 
 // Every request to a service's UI backend is made here, so nothing else in the shell knows the
-// convention: POST {bff}/{feature} with the link as the body, or, to load an address, which may be
-// repeated, GET {bff}/{feature}?link=<the link's JSON>. The backend answers a GET for anything but a
-// query with 405, and says which family the feature that answered belongs to in Featurewise-Family.
-
-export type Method = "POST" | "GET";
+// convention. A link says its feature's family, which decides the method: a query, which is safe to
+// repeat, is GET {bff}/{feature}?link=<the link's JSON>, and anything else is POST {bff}/{feature} with
+// the link as the body. The backend answers a GET for anything but a query with 405, so no address or
+// reload can run a command.
 
 export async function invoke(
-  bff: string, link: Link, method: Method, token: string | null, fetcher: typeof fetch = fetch,
+  bff: string, link: Link, token: string | null, fetcher: typeof fetch = fetch,
 ): Promise<ShellResponse> {
   const [, name] = featureOf(link);
+  const family = familyOf(link);
+  const method = family === "query" ? "GET" : "POST";
   const headers: Record<string, string> = {};
   if (token)
     headers["authorization"] = `Bearer ${token}`;
@@ -31,8 +32,8 @@ export async function invoke(
   const text = await response.text();
   return {
     link,
-    feature: link.$feature,
-    family: response.headers.get("featurewise-family"),
+    feature: qualifiedFeatureOf(link),
+    family,
     status: response.status,
     contentType,
     body: contentType.endsWith("json") && text ? JSON.parse(text) : text

@@ -18,8 +18,8 @@ describe("the generic renderer", () => {
   const result = {
     Things: [{
       Thing: { Id: "t1", Name: "Teapot" },
-      LinkToDelete: { $feature: "sample/DeleteThing", Id: "t1" },
-      LinkToRename: { $feature: "sample/RenameThing", Id: "t1", NewName: null }
+      LinkToDelete: { $command: "sample/DeleteThing", Id: "t1" },
+      LinkToRename: { $command: "sample/RenameThing", Id: "t1", NewName: null }
     }]
   };
 
@@ -59,10 +59,10 @@ describe("the generic renderer", () => {
     const editor = dialog.querySelector("textarea")!;
     expect(JSON.parse(editor.value)).toEqual(result.Things[0]!.LinkToRename);
 
-    editor.value = JSON.stringify({ $feature: "sample/RenameThing", Id: "t1", NewName: "Kettle" });
+    editor.value = JSON.stringify({ $command: "sample/RenameThing", Id: "t1", NewName: "Kettle" });
     [...dialog.querySelectorAll("button")].find(button => button.textContent === "Follow")!.click();
 
-    expect(followed).toEqual([{ $feature: "sample/RenameThing", Id: "t1", NewName: "Kettle" }]);
+    expect(followed).toEqual([{ $command: "sample/RenameThing", Id: "t1", NewName: "Kettle" }]);
   });
 
   it("won't follow what isn't a link", () => {
@@ -74,7 +74,7 @@ describe("the generic renderer", () => {
     [...dialog.querySelectorAll("button")].find(button => button.textContent === "Follow")!.click();
 
     expect(followed).toEqual([]);
-    expect(dialog.querySelector(".fw-error")!.textContent).toMatch(/\$feature/);
+    expect(dialog.querySelector(".fw-error")!.textContent).toMatch(/\$query/);
   });
 
   it("names the feature that answered above its output", () => {
