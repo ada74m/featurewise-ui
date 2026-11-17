@@ -24,6 +24,16 @@ render(element: HTMLElement, response: ShellResponse, host: Host): (() => void) 
 
 `render` renders into the element with whatever framework the module uses, and returns a function that clears it, or returns null to leave the response to the generic renderer. The response carries the `link` that was invoked, the `feature` that answered, its `family` (from the link), the `status`, the `contentType` and the parsed `body`. `host` lends the module `follow(link)`, `toast(message)`, `embed(element, link, onResult)`, which shows another link's result inside the module's own component, keeping links followed there inside it, and `pathOf(link)`, the path where a link to a query loads, for an anchor's href: its own module's address if that module is loaded, or else the shell's default one. It works for a link to any service the shell knows, so a module can link to another service's pages.
 
+### Styles
+
+A module renders into the shell's page, so the shell's stylesheet (`static/shell.css`) reaches it without being passed. Services share a look that way, without sharing a component library, which would tie them to one framework. The shell offers three things:
+
+- **Plain elements come styled:** headings, links, buttons, fields and tables. A module writes ordinary HTML, and adds `fw-primary` to a page's main button. Every one of these rules is wrapped in `:where()`, so any rule of the module's outranks it.
+- **Custom properties:** colours (`--fw-text`, `--fw-muted`, `--fw-surface`, `--fw-background`, `--fw-border`, `--fw-hover`, `--fw-accent`, `--fw-on-accent`, `--fw-error`), the font (`--fw-font`), spacing (`--fw-space-1` to `--fw-space-5`), radii (`--fw-radius`, `--fw-radius-small`), type sizes (`--fw-size-small`, `--fw-size-h1`, `--fw-size-h2`), `--fw-shadow` and `--fw-focus`. A module's own stylesheet uses them rather than numbers of its own, and may set them within its root element: `.lp { --fw-accent: #c8102e; }` changes the office's buttons and links, and nothing outside it.
+- **Three layout classes,** with no breakpoints, so a module fits whatever space it's given, a page or a panel embedded in another: `fw-stack` puts its children one above another, `fw-row` side by side, wrapping when they run out of room, and `fw-grid` in as many equal columns as fit, each at least `--fw-column` wide. Each spaces its children by `--fw-gap`.
+
+Every other `fw-` class is the shell's own, and may change. A module scopes its own rules under its root element's class, as the lost property office's are under `.lp`.
+
 ## Configuration
 
 The shell reads `services.json` from its own origin:
