@@ -107,7 +107,7 @@ body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(-
 /* A demo's text, its personas, its view and its reset. */
 .fw-demo { max-width: 60rem; margin: 0 auto; padding: 3.5rem 1.5rem 0; }
 .fw-demo[hidden] { display: none; }
-.fw-demo:not([hidden]) + #featurewise { padding-top: 1rem; }
+:not(.fw-site) > .fw-demo:not([hidden]) + #featurewise { padding-top: 1rem; }
 .fw-demo-title { font-size: 1.1rem; }
 .fw-demo-chapter { display: block; color: var(--fw-muted); font-size: var(--fw-size-small); }
 .fw-demo-about { margin: .25rem 0 .5rem; }
