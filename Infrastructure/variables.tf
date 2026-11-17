@@ -16,8 +16,14 @@ variable "services" {
 }
 
 variable "default_address" {
-  description = "Where / goes, such as /sample/things."
+  description = "Where / goes, such as /sample/things. Where there are demos, / is their home page instead."
   type        = string
+}
+
+variable "title" {
+  description = "What the site is called, where there are demos, such as Featurewise demos: the bar across the top of every page says it, and leads home."
+  type        = string
+  default     = null
 }
 
 variable "sign_in" {
@@ -43,7 +49,7 @@ variable "personas" {
 }
 
 variable "demos" {
-  description = "The demos, where a service has them, as the demos service's demos.json lists them: each with its id, the first part of its addresses, its title, chapter, text (about, storySoFar, tryThis), personas, and reset link. The shell shows them above each demo's pages, and offers their personas."
+  description = "The demos, where a service has them, as the demos service's demos.json lists them: each with its id, the first part of its addresses, its title, chapter, text (about, storySoFar, tryThis), personas, and reset link. The shell becomes their site: a bar linking to each, a home page listing them, and each one's text beside its pages, with its personas."
   type        = any
   default     = []
 }

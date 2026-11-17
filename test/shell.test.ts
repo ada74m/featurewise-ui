@@ -42,6 +42,34 @@ describe("the shell", () => {
     expect(main.textContent).toContain("Teapot");
   });
 
+  it("shows the demos' home page at /, where there are demos, without invoking anything", async () => {
+    const { fetch, calls } = fetcher();
+
+    await shell(module(), fetch, { config: { ...config, title: "Featurewise demos", demos: [{ id: "sample", title: "The sample" }] } }).start();
+
+    expect(location.pathname).toBe("/");
+    expect(calls).toHaveLength(0);
+    expect(main.querySelector("h1")!.textContent).toBe("Featurewise demos");
+    expect(main.textContent).toContain("The sample");
+  });
+
+  it("turns a service's module's rendering off and on, and shows the page again", async () => {
+    const { fetch } = fetcher({ body: thingsResult }, { body: thingsResult });
+    const custom = module(element => {
+      element.textContent = "handled";
+      return () => {};
+    });
+    const theShell = shell(custom, fetch, { customisations: storedCustomisations(sessionStorage) });
+    await theShell.start();
+    expect(theShell.rendersModule("sample")).toBe(true);
+
+    await theShell.setRendering("sample", false);
+
+    expect(theShell.rendersModule("sample")).toBe(false);
+    expect(main.textContent).toContain("Teapot");
+    sessionStorage.clear();
+  });
+
   it("shows a result with the module's handler when it has one", async () => {
     const { fetch } = fetcher({ body: thingsResult });
     const handled: ShellResponse[] = [];

@@ -28,6 +28,7 @@ locals {
 
   config = {
     default = var.default_address
+    title   = var.title
     services = {
       for id, service in var.services : id => { module = "/modules/${id}/index.js", bff = "/api/${id}" }
     }

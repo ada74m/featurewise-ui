@@ -4,6 +4,7 @@ import { invoke, isProblem, type Problem } from "./bff.js";
 import type { ShellConfig } from "./config.js";
 import { featureOf, type Host, type Link, type ServiceModule, type ShellResponse } from "./contract.js";
 import { storedCustomisations, type Customisations } from "./customisation.js";
+import { renderDemoHome } from "./demoSite.js";
 import { renderGeneric } from "./generic.js";
 import { renderServicesPage } from "./servicesPage.js";
 import type { Toaster } from "./toast.js";
@@ -98,6 +99,9 @@ export class Shell {
     this.options.onPlace?.(place);
 
     if (place.kind === "default") {
+      const demos = this.options.config.demos ?? [];
+      if (demos.length)
+        return this.show(this.page, element => renderDemoHome(element, this.options.config.title, demos));
       this.window.history.replaceState(null, "", this.options.config.default);
       return this.load();
     }
@@ -138,6 +142,17 @@ export class Shell {
     }
     this.window.history.replaceState(null, "", returnTo);
     this.signingIn = null;
+    return this.load();
+  }
+
+  // Whether the shell shows a service's results with its module's rendering, or generically.
+  rendersModule(service: string): boolean {
+    return this.customisations.of(service).render;
+  }
+
+  // Turns a service's module's rendering on or off, as the services page does, and loads the page again.
+  setRendering(service: string, render: boolean): Promise<void> {
+    this.customisations.set(service, { render });
     return this.load();
   }
 

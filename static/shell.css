@@ -67,26 +67,60 @@ body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(-
 .fw-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fw-gap); }
 .fw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(var(--fw-column), 100%), 1fr)); gap: var(--fw-gap); }
 
-/* Above a demo's pages: what it is, its story so far, and who the visitor can be. The page beneath it moves up. */
+/* Where services.json lists demos, the shell is their site: a bar across the top, with the site's title and
+   a link to each demo, and each demo's text in a sidebar on the left of its pages. Below 52rem the
+   sidebar goes under the page, so the demo itself comes first. The bar leaves room for the pill. */
+.fw-bar { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--fw-space-2) var(--fw-space-5);
+          padding: var(--fw-space-3) 12rem var(--fw-space-3) var(--fw-space-5);
+          background: var(--fw-surface); border-bottom: 1px solid var(--fw-border); }
+.fw-bar-title { font-weight: 600; font-size: var(--fw-size-h2); color: var(--fw-text); text-decoration: none; }
+.fw-bar nav { display: flex; flex-wrap: wrap; gap: var(--fw-space-4); }
+.fw-bar nav a { color: var(--fw-muted); text-decoration: none; }
+.fw-bar nav a:hover, .fw-bar nav a[aria-current] { color: var(--fw-text); }
+.fw-bar nav a[aria-current] { text-decoration: underline; text-decoration-color: var(--fw-accent);
+                              text-decoration-thickness: 2px; text-underline-offset: .45em; }
+.fw-site { display: grid; grid-template-columns: 20rem minmax(0, 1fr); gap: var(--fw-space-5) 2.5rem; align-items: start;
+           max-width: 82rem; margin: 0 auto; padding: 2rem var(--fw-space-5); }
+.fw-site > #featurewise { max-width: none; margin: 0; padding: 0; min-width: 0; }
+.fw-site > .fw-demo[hidden] + #featurewise { grid-column: 1 / -1; }
+.fw-site > .fw-demo { max-width: none; margin: 0; padding: 0 0 0 0; position: sticky; top: 2rem;
+                      max-height: calc(100vh - 4rem); overflow-y: auto; font-size: var(--fw-size-small); }
+.fw-site > .fw-demo .fw-demo-title { font-size: var(--fw-size-h2); }
+@media (max-width: 52rem) {
+  .fw-bar { padding-right: var(--fw-space-5); padding-top: 3.5rem; }
+  .fw-site { grid-template-columns: minmax(0, 1fr); }
+  .fw-site > .fw-demo { position: static; max-height: none; order: 1; border-top: 1px solid var(--fw-border);
+                        padding-top: var(--fw-space-5); }
+}
+/* Who the visitor is, and plain or dressed: a row of buttons each, with the one chosen filled in. */
+.fw-demo-choice { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fw-space-2); color: var(--fw-muted); }
+.fw-demo-choice + .fw-demo-choice { margin-top: var(--fw-space-2); }
+.fw-demo-choice > span { min-width: 2.75rem; }
+.fw-demo-choice button { border-radius: 999px; padding: .1rem .8rem; }
+.fw-demo-choice button[aria-pressed=true] { color: var(--fw-on-accent); background: var(--fw-accent); border-color: var(--fw-accent); cursor: default; }
+.fw-home-card { background: var(--fw-surface); border: 1px solid var(--fw-border); border-radius: var(--fw-radius);
+                padding: var(--fw-space-4); }
+.fw-home-card p { margin: var(--fw-space-2) 0 0; }
+.fw-home-card .fw-home-chapter { color: var(--fw-muted); margin-top: 0; }
+.fw-home-card h2 a { text-decoration: none; }
+
+/* A demo's text, its personas, its view and its reset. */
 .fw-demo { max-width: 60rem; margin: 0 auto; padding: 3.5rem 1.5rem 0; }
 .fw-demo[hidden] { display: none; }
 .fw-demo:not([hidden]) + #featurewise { padding-top: 1rem; }
 .fw-demo-title { font-size: 1.1rem; }
-.fw-demo-chapter { color: var(--fw-muted); }
+.fw-demo-chapter { display: block; color: var(--fw-muted); font-size: var(--fw-size-small); }
 .fw-demo-about { margin: .25rem 0 .5rem; }
 .fw-demo-fold { margin: .25rem 0; }
 .fw-demo-fold summary { cursor: pointer; color: var(--fw-muted); }
 .fw-demo-fold p, .fw-demo-fold ol { margin: .25rem 0 .5rem 1.1rem; }
 .fw-demo-fold ol { padding-left: 1.1rem; }
-.fw-demo-who { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: .5rem; color: var(--fw-muted);
-               padding-bottom: .75rem; border-bottom: 1px solid var(--fw-border); }
-.fw-persona { font: inherit; color: var(--fw-on-accent); background: var(--fw-accent); border: none; border-radius: 999px; padding: .2rem .8rem; cursor: pointer; }
-.fw-persona:hover { filter: brightness(1.1); }
+.fw-demo-controls { margin: var(--fw-space-3) 0; padding-bottom: var(--fw-space-3); border-bottom: 1px solid var(--fw-border); }
 .fw-persona-name { font: inherit; color: var(--fw-accent); background: none; border: none; padding: 0; cursor: pointer;
                    text-decoration: underline dotted; text-underline-offset: .2em; }
 .fw-persona-name:disabled { opacity: 1; color: inherit; text-decoration: none; cursor: default; font-weight: 600; }
 .fw-demo-reset { font: inherit; color: var(--fw-muted); background: none; border: 1px solid var(--fw-border); border-radius: 999px;
-                 padding: .2rem .8rem; cursor: pointer; margin-left: auto; }
+                 padding: .2rem .8rem; cursor: pointer; display: block; margin-top: var(--fw-space-3); }
 .fw-demo-reset:hover { background: var(--fw-hover); }
 
 .fw-generic ul { list-style: none; margin: 0; padding-left: 1.25rem; border-left: 1px solid var(--fw-border); }

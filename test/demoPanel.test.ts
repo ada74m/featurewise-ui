@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { devAuth } from "../src/auth.js";
 import type { DemoConfig } from "../src/config.js";
 import type { Link } from "../src/contract.js";
-import { renderDemoPanel } from "../src/demoPanel.js";
+import { renderDemoPanel, type View } from "../src/demoPanel.js";
 
 describe("the demo panel", () => {
   const reset: Link = { $command: "demos/ResetDemo", Demo: "lost-property" };
@@ -30,15 +30,18 @@ describe("the demo panel", () => {
     resets = [];
   });
 
-  const render = (auth = devAuth(personas), place: Parameters<typeof renderDemoPanel>[3] = lostProperty) =>
-    renderDemoPanel(panel, demos, auth, place, link => resets.push(link));
-  const switches = () => [...panel.querySelectorAll("button.fw-persona")].map(button => button.textContent);
+  const render = (auth = devAuth(personas), place: Parameters<typeof renderDemoPanel>[3] = lostProperty, view?: View) =>
+    renderDemoPanel(panel, demos, auth, place, link => resets.push(link), view);
+  // The persona buttons' labels, the chosen one marked with a star.
+  const switches = () => [...panel.querySelectorAll(".fw-demo-as button")]
+    .map(button => `${button.textContent}${button.getAttribute("aria-pressed") === "true" ? "*" : ""}`);
 
   it("says what the demo is, and the story so far", () => {
     render();
 
     expect(panel.hidden).toBe(false);
-    expect(panel.querySelector(".fw-demo-title")!.textContent).toBe("The lost property office · Chapter 1. Features");
+    expect(panel.querySelector(".fw-demo-title strong")!.textContent).toBe("The lost property office");
+    expect(panel.querySelector(".fw-demo-chapter")!.textContent).toBe("Chapter 1. Features");
     expect(panel.textContent).toContain("A railway station's lost property office.");
     expect(panel.textContent).toContain("Six things are waiting to be claimed.");
   });
@@ -81,7 +84,6 @@ describe("the demo panel", () => {
   it("offers the demo's personas to someone who isn't one yet, and nobody else's", () => {
     render();
 
-    expect(panel.textContent).toContain("Try this as");
     expect(switches()).toEqual(["Traveller", "Clerk"]);
   });
 
@@ -90,9 +92,11 @@ describe("the demo panel", () => {
     auth.signInAs(personas[0]!);
     render(auth);
 
-    expect(panel.textContent).toContain("You're the Traveller.");
-    expect(switches()).toEqual(["Switch to Clerk"]);
-    (panel.querySelector("button.fw-persona") as HTMLButtonElement).click();
+    expect(switches()).toEqual(["Traveller*", "Clerk"]);
+    const [traveller, clerk] = [...panel.querySelectorAll<HTMLButtonElement>(".fw-demo-as button")];
+    traveller!.click();
+    expect(auth.current()?.username).toBe("traveller");
+    clerk!.click();
     expect(auth.current()?.username).toBe("clerk");
   });
 
@@ -106,6 +110,17 @@ describe("the demo panel", () => {
     (panel.querySelector(".fw-demo-reset") as HTMLButtonElement).click();
 
     expect(resets).toEqual([reset]);
+  });
+
+  it("says whether the pages are plain or dressed, and changes it", () => {
+    const chosen: boolean[] = [];
+    render(devAuth(personas), lostProperty, { dressed: true, choose: dressed => chosen.push(dressed) });
+    const [plain, dressed] = [...panel.querySelectorAll<HTMLButtonElement>(".fw-demo-view button")];
+
+    expect([plain!.getAttribute("aria-pressed"), dressed!.getAttribute("aria-pressed")]).toEqual(["false", "true"]);
+    dressed!.click();
+    plain!.click();
+    expect(chosen).toEqual([false]);
   });
 
   it("keeps the story folded once it's folded", () => {

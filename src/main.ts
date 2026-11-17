@@ -3,6 +3,7 @@ import { oidcAuth } from "./oidc.js";
 import { loadConfig } from "./config.js";
 import { definePill, type Pill } from "./pill.js";
 import { renderDemoPanel } from "./demoPanel.js";
+import { renderDemoBar } from "./demoSite.js";
 import { Shell } from "./shell.js";
 import { toaster } from "./toast.js";
 
@@ -29,21 +30,36 @@ async function main(): Promise<void> {
   const pill = document.createElement("featurewise-pill") as Pill;
   document.body.append(pill);
 
-  // Above a demo's pages: what it is, its story so far, and who the visitor can be.
-  const panel = document.createElement("section");
+  // Beside a demo's pages: what it is, its story so far, and who the visitor can be. Where there are demos,
+  // the shell is their site, with a bar across the top, and the panel is a sidebar on the left.
+  const demos = config.demos ?? [];
+  const panel = document.createElement("aside");
   panel.className = "fw-demo";
   panel.hidden = true;
-  main.before(panel);
+  const bar = document.createElement("header");
+  bar.className = "fw-bar";
+  if (demos.length) {
+    const site = document.createElement("div");
+    site.className = "fw-site";
+    main.before(bar, site);
+    site.append(panel, main);
+  } else
+    main.before(panel);
 
   const shell = new Shell({
     config, auth, main, toaster: toasts,
     needsSignIn: () => pill.openMenu(),
     onPlace: place => {
-      renderDemoPanel(panel, config.demos ?? [], auth, place, link => void shell.runAndReload(link, "Started again from the beginning."));
+      const service = place.kind === "service" ? place.service : undefined;
+      const view = service === undefined ? undefined
+        : { dressed: shell.rendersModule(service), choose: (dressed: boolean) => void shell.setRendering(service, dressed) };
+      renderDemoPanel(panel, demos, auth, place, link => void shell.runAndReload(link, "Started again from the beginning."), view);
+      if (demos.length)
+        renderDemoBar(bar, config, place);
       pill.showingService(place.kind === "service" ? place.service : undefined);
     }
   });
-  pill.attach(auth, () => void shell.openServices(), config.demos ?? []);
+  pill.attach(auth, () => void shell.openServices(), demos);
   // What a user may do decides which links they're offered, so a new user sees the page afresh.
   auth.onChange(() => void shell.load());
   await shell.start();

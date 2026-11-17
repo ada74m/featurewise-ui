@@ -54,8 +54,11 @@ export interface SignInConfig {
 }
 
 export interface ShellConfig {
-  // Where "/" goes, such as "/sample/things".
+  // Where "/" goes, such as "/sample/things". Where there are demos, "/" is their home page instead.
   default: string;
+  // What the site is called, where there are demos, such as "Featurewise demos": the bar across the top
+  // says it, and leads home.
+  title?: string;
   services: Record<string, ServiceConfig>;
   // Who a visitor can be: with no real sign-in, each is signed in with an unsigned token; with a sign-in
   // that has personas, by naming them in login_hint.
