@@ -24,6 +24,26 @@ render(element: HTMLElement, response: ShellResponse, host: Host): (() => void) 
 
 `render` renders into the element with whatever framework the module uses, and returns a function that clears it, or returns null to leave the response to the generic renderer. The response carries the `link` that was invoked, the `feature` that answered, its `family` (from the link), the `status`, the `contentType` and the parsed `body`. `host` lends the module `follow(link)`, `toast(message)`, `embed(element, link, onResult)`, which shows another link's result inside the module's own component, keeping links followed there inside it, and `pathOf(link)`, the path where a link to a query loads, for an anchor's href: its own module's address if that module is loaded, or else the shell's default one. It works for a link to any service the shell knows, so a module can link to another service's pages.
 
+### The module builder
+
+A module can be written as those three functions, or built from the service's features with `featurewiseModule`, which this repository publishes, with the contract's types, as the npm package `@ada74m/featurewise-ui`:
+
+```ts
+import { featurewiseModule } from "@ada74m/featurewise-ui";
+
+const ui = featurewiseModule("lost-property", { home: "unclaimed-items" });
+ui.addQuery("UnclaimedItems").address("unclaimed-items").render(unclaimedItems.result);
+ui.addQuery("ItemsFoundAt").address("found-at/{Station}");
+ui.addCommand("ClaimItem")
+  .renderCase("Claimed", claimItem.Claimed)
+  .renderCase("DoesntMatchReport", claimItem.DoesntMatchReport);
+export default ui;
+```
+
+Each query may have an address, from a template whose placeholders name its arguments (`{Station}`, `{Seat:int}`, `{On:date}`). The template reads an address into a link and writes the link back, and is used only for a link whose arguments, apart from `CausedBy`, it holds exactly. Each feature may render its result, or each of its result cases. Whatever isn't added is left to the shell: the generic renderer, and the default address. A renderer gets the result's body untyped, since its shape is the feature's. A module bundles what it imports from the package, so the shell doesn't serve it.
+
+The package is on the owner's GitHub Packages registry, published by CI on each push to main as `0.1.0-preview.<run>`. A module names the registry in its `.npmrc` (`@ada74m:registry=https://npm.pkg.github.com`, with a token that can read packages), and a repository whose CI builds modules needs read access to the package (its settings, Manage Actions access).
+
 ### Styles
 
 A module renders into the shell's page, so the shell's stylesheet (`static/shell.css`) reaches it without being passed. Services share a look that way, without sharing a component library, which would tie them to one framework. The shell offers three things:
@@ -65,7 +85,7 @@ An environment may also give it a `domain`: a host name, such as `demos.featurew
 
 Its outputs are the shell's `url`, the `callback_url` the identity provider's client must allow, and the `bucket` services upload their modules to; `url` and `callback_url` use the shell's domain if it has one. And the distribution's `distribution_domain_name` and `hosted_zone_id`, which an alias record names.
 
-`package.sh <version> <out-dir>` builds the package, `ui-<version>.zip`: the module and the built shell beside it. CI builds, tests, checks the Terraform and packages on every pull request and push, and each push to main publishes the package to the estate's artifacts bucket as `ui/<version>.zip`, tagging the commit `ui/<version>`, once the repository has the variables `AWS_REGION`, `ARTIFACTS_BUCKET` and `PUBLISH_ROLE_ARN` from `featurewise-environments`' bootstrap.
+`package.sh <version> <out-dir>` builds the package, `ui-<version>.zip`: the module and the built shell beside it. CI builds, tests, checks the Terraform and packages on every pull request and push, and each push to main publishes the npm package for modules (above), and the package to the estate's artifacts bucket as `ui/<version>.zip`, tagging the commit `ui/<version>`, once the repository has the variables `AWS_REGION`, `ARTIFACTS_BUCKET` and `PUBLISH_ROLE_ARN` from `featurewise-environments`' bootstrap.
 
 ## Building
 

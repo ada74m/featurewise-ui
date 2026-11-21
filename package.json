@@ -1,8 +1,26 @@
 {
-  "name": "featurewise-ui",
-  "private": true,
+  "name": "@ada74m/featurewise-ui",
+  "version": "0.1.0-dev",
   "type": "module",
-  "description": "The Featurewise UI shell: loads services' modules, invokes their features through their backends, and renders what comes back.",
+  "description": "The Featurewise UI shell: loads services' modules, invokes their features through their backends, and renders what comes back. As a package, it's what a service's module needs from the shell: the contract's types, and the builder that makes a module from the service's features.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ada74m/featurewise-ui.git"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/module/index.d.ts",
+      "import": "./dist/module/index.js"
+    }
+  },
+  "files": [
+    "dist/module",
+    "dist/contract.js",
+    "dist/contract.d.ts"
+  ],
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "scripts": {
     "build": "tsc -p . && cp static/* dist/",
     "watch": "tsc -p . --watch",
