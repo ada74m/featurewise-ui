@@ -28,6 +28,7 @@ describe("the demos' site", () => {
       ["The lost property office", "/lost-property/", null],
       ["The box office", "/box-office/", "page"]
     ]);
+    expect(element.querySelector(".fw-bar-title img")!.getAttribute("src")).toBe("/logo.svg");
   });
 
   it("marks home in the bar on the home page", () => {

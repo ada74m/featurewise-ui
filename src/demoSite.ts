@@ -11,7 +11,10 @@ export function renderDemoBar(bar: HTMLElement, config: ShellConfig, place: Plac
   const home = document.createElement("a");
   home.className = "fw-bar-title";
   home.href = "/";
-  home.textContent = config.title ?? "Featurewise";
+  const logo = document.createElement("img");
+  logo.src = "/logo.svg";
+  logo.alt = "";
+  home.append(logo, config.title ?? "Featurewise");
   if (place.kind === "default")
     home.setAttribute("aria-current", "page");
 

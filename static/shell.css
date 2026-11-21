@@ -70,10 +70,12 @@ body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(-
 /* Where services.json lists demos, the shell is their site: a bar across the top, with the site's title and
    a link to each demo, and each demo's text in a sidebar on the left of its pages. Below 52rem the
    sidebar goes under the page, so the demo itself comes first. The bar leaves room for the pill. */
-.fw-bar { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--fw-space-2) var(--fw-space-5);
+.fw-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fw-space-2) var(--fw-space-5);
           padding: var(--fw-space-3) 12rem var(--fw-space-3) var(--fw-space-5);
           background: var(--fw-surface); border-bottom: 1px solid var(--fw-border); }
-.fw-bar-title { font-weight: 600; font-size: var(--fw-size-h2); color: var(--fw-text); text-decoration: none; }
+.fw-bar-title { display: inline-flex; align-items: center; gap: var(--fw-space-2);
+                font-weight: 600; font-size: var(--fw-size-h2); color: var(--fw-text); text-decoration: none; }
+.fw-bar-title img { height: 1.75rem; width: 1.75rem; }
 .fw-bar nav { display: flex; flex-wrap: wrap; gap: var(--fw-space-4); }
 .fw-bar nav a { color: var(--fw-muted); text-decoration: none; }
 .fw-bar nav a:hover, .fw-bar nav a[aria-current] { color: var(--fw-text); }
