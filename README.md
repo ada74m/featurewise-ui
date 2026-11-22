@@ -1,5 +1,7 @@
 # featurewise-ui
 
+The Featurewise UI shell: [featurewise.dev/shell](https://featurewise.dev/shell/), and the ideas behind it at [featurewise.dev](https://featurewise.dev/).
+
 The UI shell for Featurewise services. It loads each service's module, invokes every link through the service's UI backend, and shows the result with the module's handler, or with a generic renderer when the module has none. Modules never invoke anything: they map addresses to links, and render what comes back.
 
 The shell is plain TypeScript with no framework and no runtime dependencies, so the contract it offers modules stays independent of any framework. Its own UI, the pill, is a web component with its styles in a shadow root.

@@ -4,6 +4,7 @@
   "type": "module",
   "description": "The Featurewise UI shell: loads services' modules, invokes their features through their backends, and renders what comes back. As a package, it's what a service's module needs from the shell: the contract's types, and the builder that makes a module from the service's features.",
   "license": "MIT",
+  "homepage": "https://featurewise.dev/shell/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ada74m/featurewise-ui.git"
