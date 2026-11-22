@@ -2,7 +2,7 @@
 # main. Each push to main also publishes the package, versioned by date and run, to the estate's
 # artifacts bucket, and tags the commit with that version. And it publishes the npm package that services'
 # modules build with, @featurewise/ui (the contract's types and the module builder), to npm, as
-# 0.1.0-preview.<run>, as the library's packages go to nuget.org.
+# 0.1.0-preview.<yyyymmdd>.<run>, as the library's packages go to nuget.org.
 name: CI
 
 on:
@@ -78,7 +78,9 @@ jobs:
       - run: npm install --global npm@11
       - run: npm ci
       - run: npm run build
-      - run: npm version "0.1.0-preview.${{ github.run_number }}" --no-git-tag-version
+      # The date first, so versions keep rising even if the run number starts again, as it does in a new
+      # repository: 0.1.0-preview.20261122.2 comes after 0.1.0-preview.27.
+      - run: npm version "0.1.0-preview.$(date -u +%Y%m%d).${{ github.run_number }}" --no-git-tag-version
       - run: npm publish --tag latest
 
   # Needs the estate's bootstrap: the repository variable AWS_REGION, the secrets ARTIFACTS_BUCKET and

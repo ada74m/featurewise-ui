@@ -42,7 +42,7 @@ export default ui;
 
 Each query may have an address, from a template whose placeholders name its arguments (`{Station}`, `{Seat:int}`, `{On:date}`). The template reads an address into a link and writes the link back, and is used only for a link whose arguments, apart from `CausedBy`, it holds exactly. Each feature may render its result, or each of its result cases. Whatever isn't added is left to the shell: the generic renderer, and the default address. A renderer gets the result's body untyped, since its shape is the feature's. A module bundles what it imports from the package, so the shell doesn't serve it.
 
-The package is on npm, published by CI on each push to main as `0.1.0-preview.<run>`: `npm install @featurewise/ui`.
+The package is on npm, published by CI on each push to main as `0.1.0-preview.<yyyymmdd>.<run>`: `npm install @featurewise/ui`.
 
 ### Styles
 
