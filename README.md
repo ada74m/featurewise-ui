@@ -99,4 +99,4 @@ npm test           # type-checks the tests and runs them
 
 ## Licence
 
-MIT, apart from the Featurewise name and logo, and the fonts, which have their own terms: see `LICENSE`.
+MIT (`LICENSE`), apart from the Featurewise name and logo, and the fonts, which have their own terms (`NOTICE.md`).
