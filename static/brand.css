@@ -1,0 +1,43 @@
+/* The Featurewise brand: its colours, type and sizes, as custom properties, and its fonts. It's kept in
+   one place, and featurewise.dev and the UI shell each carry a copy, with fonts/ beside it: change it
+   there, and copy it to both.
+   Arvo for headings, a slab serif close to Rockwell, and Lato for text: both under the SIL Open Font
+   Licence (fonts/OFL-*.txt), served from beside this file, Latin only. */
+@font-face { font-family: Arvo; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/arvo-700.woff2) format("woff2"); }
+@font-face { font-family: Lato; font-style: normal; font-weight: 400; font-display: swap; src: url(fonts/lato-400.woff2) format("woff2"); }
+@font-face { font-family: Lato; font-style: italic; font-weight: 400; font-display: swap; src: url(fonts/lato-400-italic.woff2) format("woff2"); }
+@font-face { font-family: Lato; font-style: normal; font-weight: 700; font-display: swap; src: url(fonts/lato-700.woff2) format("woff2"); }
+@font-face { font-family: Lato; font-style: italic; font-weight: 700; font-display: swap; src: url(fonts/lato-700-italic.woff2) format("woff2"); }
+
+:root {
+  --fw-font-body: Lato, system-ui, sans-serif;
+  --fw-font-heading: Arvo, Rockwell, Georgia, serif;
+  --fw-font: 16px/1.6 var(--fw-font-body);
+  --fw-text: #1d1d1f;
+  --fw-muted: #6e6e73;
+  --fw-surface: #fff;
+  --fw-background: #f5f5f7;
+  --fw-border: #d2d2d7;
+  --fw-hover: rgba(0, 0, 0, .06);
+  /* Links, the current page's underline and focus rings: the logo's blue, as headings and buttons are. */
+  --fw-accent: var(--fw-brand);
+  --fw-on-accent: #fff;
+  --fw-error: #c4161c;
+
+  /* The logo's two colours: its blue, which headings and buttons take, and its green. */
+  --fw-brand: #2e5f85;
+  --fw-brand-green: #397321;
+  --fw-on-brand: #fff;
+
+  --fw-space-1: .25rem;
+  --fw-space-2: .5rem;
+  --fw-space-3: .75rem;
+  --fw-space-4: 1rem;
+  --fw-space-5: 1.5rem;
+  --fw-radius: 8px;
+  --fw-radius-small: 4px;
+  --fw-size-small: .9em;
+  --fw-size-h1: 1.5rem;
+  --fw-size-h2: 1.05rem;
+  --fw-focus: 0 0 0 3px color-mix(in srgb, var(--fw-accent) 35%, transparent);
+}

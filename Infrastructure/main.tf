@@ -14,13 +14,15 @@ locals {
   dist = "${path.module}/../dist"
 
   content_types = {
-    html = "text/html; charset=utf-8"
-    js   = "text/javascript; charset=utf-8"
-    css  = "text/css; charset=utf-8"
-    json = "application/json"
-    map  = "application/json"
-    svg  = "image/svg+xml"
-    png  = "image/png"
+    html  = "text/html; charset=utf-8"
+    js    = "text/javascript; charset=utf-8"
+    css   = "text/css; charset=utf-8"
+    json  = "application/json"
+    map   = "application/json"
+    svg   = "image/svg+xml"
+    png   = "image/png"
+    woff2 = "font/woff2"
+    txt   = "text/plain; charset=utf-8"
   }
 
   # Type declarations are for other TypeScript, not the browser.

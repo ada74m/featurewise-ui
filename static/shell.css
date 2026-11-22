@@ -1,36 +1,15 @@
-/* The shell's stylesheet, and the look it lends modules. A module renders into the shell's page, so
-   three things here reach it without being passed: plain elements come styled; the custom properties
+/* The shell's stylesheet, and the look it lends modules, on brand.css's values and fonts, which the
+   page loads first. A module renders into the shell's page, so three things here reach it without being
+   passed: plain elements come styled; the custom properties
    below are its to read, and to set within its own root element; and three layout classes,
    fw-stack, fw-row and fw-grid, are its to use, as is fw-primary for a page's main button. The rest
    (fw- classes not named here) is the shell's own, and may change. Services share a look without
    sharing a component library, which would tie them to one framework. */
 :root {
-  --fw-font: 15px/1.5 system-ui, sans-serif;
-  --fw-text: #1d1d1f;
-  --fw-muted: #6e6e73;
-  --fw-surface: #fff;
-  --fw-background: #f5f5f7;
-  --fw-border: #d2d2d7;
-  --fw-hover: rgba(0, 0, 0, .06);
-  --fw-accent: #0a64d8;
-  --fw-on-accent: #fff;
-  --fw-error: #c4161c;
-
-  /* Sizes: spacing on one scale, two radii, three type sizes. */
-  --fw-space-1: .25rem;
-  --fw-space-2: .5rem;
-  --fw-space-3: .75rem;
-  --fw-space-4: 1rem;
-  --fw-space-5: 1.5rem;
-  --fw-radius: 8px;
-  --fw-radius-small: 4px;
-  --fw-size-small: .9em;
-  --fw-size-h1: 1.5rem;
-  --fw-size-h2: 1.05rem;
+  /* The brand's values (colours, type, spacing, radii, sizes, focus) are in brand.css, loaded first.
+     These are the shell's own: a dialog's shadow, and the layout classes' defaults, the gap between
+     children, and fw-grid's narrowest column. */
   --fw-shadow: 0 4px 24px rgba(0, 0, 0, .3);
-  --fw-focus: 0 0 0 3px color-mix(in srgb, var(--fw-accent) 35%, transparent);
-
-  /* The layout classes' defaults: the gap between children, and fw-grid's narrowest column. */
   --fw-gap: var(--fw-space-3);
   --fw-column: 16rem;
 }
@@ -39,6 +18,7 @@ body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(-
 #featurewise { max-width: 60rem; margin: 0 auto; padding: 3.5rem 1.5rem 2rem; }
 
 /* Plain elements. Each rule is wrapped in :where(), so any class, or any rule of a module's, outranks it. */
+:where(h1, h2) { font-family: var(--fw-font-heading); font-weight: 700; color: var(--fw-brand); }
 :where(h1) { font-size: var(--fw-size-h1); line-height: 1.2; margin: 0 0 var(--fw-space-1); }
 :where(h2) { font-size: var(--fw-size-h2); margin: 0; }
 :where(a) { color: var(--fw-accent); }
@@ -73,8 +53,8 @@ body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(-
 .fw-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--fw-space-2) var(--fw-space-5);
           padding: var(--fw-space-3) 12rem var(--fw-space-3) var(--fw-space-5);
           background: var(--fw-surface); border-bottom: 1px solid var(--fw-border); }
-.fw-bar-title { display: inline-flex; align-items: center; gap: var(--fw-space-2);
-                font-weight: 600; font-size: var(--fw-size-h2); color: var(--fw-text); text-decoration: none; }
+.fw-bar-title { display: inline-flex; align-items: center; gap: var(--fw-space-2); font-family: var(--fw-font-heading);
+                font-weight: 700; font-size: var(--fw-size-h2); color: var(--fw-text); text-decoration: none; }
 .fw-bar-title img { height: 1.75rem; width: 1.75rem; }
 .fw-bar nav { display: flex; flex-wrap: wrap; gap: var(--fw-space-4); }
 .fw-bar nav a { color: var(--fw-muted); text-decoration: none; }
@@ -111,6 +91,7 @@ body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(-
 .fw-demo[hidden] { display: none; }
 :not(.fw-site) > .fw-demo:not([hidden]) + #featurewise { padding-top: 1rem; }
 .fw-demo-title { font-size: 1.1rem; }
+.fw-demo-title strong { font-family: var(--fw-font-heading); color: var(--fw-brand); }
 .fw-demo-chapter { display: block; color: var(--fw-muted); font-size: var(--fw-size-small); }
 .fw-demo-about { margin: .25rem 0 .5rem; }
 .fw-demo-fold { margin: .25rem 0; }

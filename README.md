@@ -49,10 +49,10 @@ The package is on the owner's GitHub Packages registry, published by CI on each 
 A module renders into the shell's page, so the shell's stylesheet (`static/shell.css`) reaches it without being passed. Services share a look that way, without sharing a component library, which would tie them to one framework. The shell offers three things:
 
 - **Plain elements come styled:** headings, links, buttons, fields and tables. A module writes ordinary HTML, and adds `fw-primary` to a page's main button. Every one of these rules is wrapped in `:where()`, so any rule of the module's outranks it.
-- **Custom properties:** colours (`--fw-text`, `--fw-muted`, `--fw-surface`, `--fw-background`, `--fw-border`, `--fw-hover`, `--fw-accent`, `--fw-on-accent`, `--fw-error`), the font (`--fw-font`), spacing (`--fw-space-1` to `--fw-space-5`), radii (`--fw-radius`, `--fw-radius-small`), type sizes (`--fw-size-small`, `--fw-size-h1`, `--fw-size-h2`), `--fw-shadow` and `--fw-focus`. A module's own stylesheet uses them rather than numbers of its own, and may set them within its root element: `.lp { --fw-accent: #c8102e; }` changes the office's buttons and links, and nothing outside it.
+- **Custom properties:** colours (`--fw-text`, `--fw-muted`, `--fw-surface`, `--fw-background`, `--fw-border`, `--fw-hover`, `--fw-accent`, `--fw-on-accent`, `--fw-error`, and the logo's `--fw-brand` and `--fw-brand-green`), the fonts (`--fw-font`, and `--fw-font-heading` and `--fw-font-body`: Arvo and Lato), spacing (`--fw-space-1` to `--fw-space-5`), radii (`--fw-radius`, `--fw-radius-small`), type sizes (`--fw-size-small`, `--fw-size-h1`, `--fw-size-h2`), `--fw-shadow` and `--fw-focus`. A module's own stylesheet uses them rather than numbers of its own, and may set them within its root element: `.lp { --fw-accent: #c8102e; }` changes the office's buttons and links, and nothing outside it.
 - **Three layout classes,** with no breakpoints, so a module fits whatever space it's given, a page or a panel embedded in another: `fw-stack` puts its children one above another, `fw-row` side by side, wrapping when they run out of room, and `fw-grid` in as many equal columns as fit, each at least `--fw-column` wide. Each spaces its children by `--fw-gap`.
 
-Every other `fw-` class is the shell's own, and may change. A module scopes its own rules under its root element's class, as the lost property office's are under `.lp`.
+Most of the properties, and the fonts, come from `static/brand.css`, the Featurewise brand, which featurewise.dev shares; it's kept separately and copied here. `shell.css` adds the shell's own. Every other `fw-` class is the shell's own, and may change. A module scopes its own rules under its root element's class, as the lost property office's are under `.lp`.
 
 ## Configuration
 
@@ -85,7 +85,7 @@ An environment may also give it a `domain`: a host name, such as `demos.featurew
 
 Its outputs are the shell's `url`, the `callback_url` the identity provider's client must allow, and the `bucket` services upload their modules to; `url` and `callback_url` use the shell's domain if it has one. And the distribution's `distribution_domain_name` and `hosted_zone_id`, which an alias record names.
 
-`package.sh <version> <out-dir>` builds the package, `ui-<version>.zip`: the module and the built shell beside it. CI builds, tests, checks the Terraform and packages on every pull request and push, and each push to main publishes the npm package for modules (above), and the package to the estate's artifacts bucket as `ui/<version>.zip`, tagging the commit `ui/<version>`, once the repository has the variables `AWS_REGION`, `ARTIFACTS_BUCKET` and `PUBLISH_ROLE_ARN` from `featurewise-environments`' bootstrap.
+`package.sh <version> <out-dir>` builds the package, `ui-<version>.zip`: the module and the built shell beside it. CI builds, tests, checks the Terraform and packages on every pull request and push, and each push to main publishes the npm package for modules (above), and the package to the estate's artifacts bucket as `ui/<version>.zip`, tagging the commit `ui/<version>`, once the repository has the variable `AWS_REGION` and the secrets `ARTIFACTS_BUCKET` and `PUBLISH_ROLE_ARN` from the estate's bootstrap. They're secrets so that the logs don't show the account they name.
 
 ## Building
 

@@ -22,7 +22,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
-    "build": "tsc -p . && cp static/* dist/",
+    "build": "tsc -p . && cp -R static/. dist/",
     "watch": "tsc -p . --watch",
     "test": "tsc -p test && vitest run"
   },
