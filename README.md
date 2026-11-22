@@ -26,10 +26,10 @@ render(element: HTMLElement, response: ShellResponse, host: Host): (() => void) 
 
 ### The module builder
 
-A module can be written as those three functions, or built from the service's features with `featurewiseModule`, which this repository publishes, with the contract's types, as the npm package `@ada74m/featurewise-ui`:
+A module can be written as those three functions, or built from the service's features with `featurewiseModule`, which this repository publishes, with the contract's types, as the npm package `@featurewise/ui`:
 
 ```ts
-import { featurewiseModule } from "@ada74m/featurewise-ui";
+import { featurewiseModule } from "@featurewise/ui";
 
 const ui = featurewiseModule("lost-property", { home: "unclaimed-items" });
 ui.addQuery("UnclaimedItems").address("unclaimed-items").render(unclaimedItems.result);
@@ -42,7 +42,7 @@ export default ui;
 
 Each query may have an address, from a template whose placeholders name its arguments (`{Station}`, `{Seat:int}`, `{On:date}`). The template reads an address into a link and writes the link back, and is used only for a link whose arguments, apart from `CausedBy`, it holds exactly. Each feature may render its result, or each of its result cases. Whatever isn't added is left to the shell: the generic renderer, and the default address. A renderer gets the result's body untyped, since its shape is the feature's. A module bundles what it imports from the package, so the shell doesn't serve it.
 
-The package is on the owner's GitHub Packages registry, published by CI on each push to main as `0.1.0-preview.<run>`. A module names the registry in its `.npmrc` (`@ada74m:registry=https://npm.pkg.github.com`, with a token that can read packages), and a repository whose CI builds modules needs read access to the package (its settings, Manage Actions access).
+The package is on npm, published by CI on each push to main as `0.1.0-preview.<run>`: `npm install @featurewise/ui`.
 
 ### Styles
 

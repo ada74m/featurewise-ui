@@ -1,8 +1,8 @@
 # Builds and tests the shell, checks its Terraform and packages it, on every pull request and push to
 # main. Each push to main also publishes the package, versioned by date and run, to the estate's
 # artifacts bucket, and tags the commit with that version. And it publishes the npm package that services'
-# modules build with, @ada74m/featurewise-ui (the contract's types and the module builder), to this
-# account's GitHub Packages registry, as 0.1.0-preview.<run>, as the library's NuGet packages are.
+# modules build with, @featurewise/ui (the contract's types and the module builder), to npm, as
+# 0.1.0-preview.<run>, as the library's packages go to nuget.org.
 name: CI
 
 on:
@@ -56,15 +56,16 @@ jobs:
           path: out/ui-${{ steps.version.outputs.version }}.zip
           if-no-files-found: error
 
-  # A repository whose modules use the package needs read access to it: the package's settings, Manage
-  # Actions access.
+  # Publishes @featurewise/ui to npm by trusted publishing: npm trusts this repository's ci.yml (the
+  # package's settings, Trusted Publisher), so there's no token. It needs npm 11.5 or later, and the run's
+  # OIDC token.
   publish-package:
     needs: build
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+      id-token: write
     steps:
       - uses: actions/checkout@v7
 
@@ -72,15 +73,13 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          registry-url: https://npm.pkg.github.com
-          scope: "@ada74m"
+          registry-url: https://registry.npmjs.org
 
+      - run: npm install --global npm@11
       - run: npm ci
       - run: npm run build
       - run: npm version "0.1.0-preview.${{ github.run_number }}" --no-git-tag-version
-      - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npm publish --tag latest
 
   # Needs the estate's bootstrap: the repository variable AWS_REGION, the secrets ARTIFACTS_BUCKET and
   # PUBLISH_ROLE_ARN (secrets, so the logs don't show the account they name), and the role it names,
