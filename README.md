@@ -96,3 +96,7 @@ npm test           # type-checks the tests and runs them
 ```
 
 `dist/` is what a host serves: `index.html` at every path that isn't a backend's or a module's, with `main.js` and `shell.css` beside it. A service's local host serves it from a sibling checkout, as the sample's does.
+
+## Licence
+
+MIT, apart from the Featurewise name and logo, and the fonts, which have their own terms: see `LICENSE`.
