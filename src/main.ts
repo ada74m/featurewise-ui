@@ -1,6 +1,7 @@
 import { devAuth } from "./auth.js";
 import { oidcAuth } from "./oidc.js";
 import { loadConfig } from "./config.js";
+import { fitFrame, isFramed } from "./frame.js";
 import { definePill, type Pill } from "./pill.js";
 import { renderDemoPanel } from "./demoPanel.js";
 import { renderDemoBar } from "./demoSite.js";
@@ -10,6 +11,7 @@ import { toaster } from "./toast.js";
 export type { Host, Link, ServiceModule, ShellResponse } from "./contract.js";
 
 // Starts the shell in index.html: reads services.json, shows the pill, and loads the page the URL names.
+// In a frame, it shows no pill and fits the frame instead.
 async function main(): Promise<void> {
   const main = document.getElementById("featurewise");
   if (!main)
@@ -26,9 +28,15 @@ async function main(): Promise<void> {
 
   const personas = config.personas ?? [];
   const auth = config.signIn ? oidcAuth(config.signIn, personas) : devAuth(personas);
-  definePill();
-  const pill = document.createElement("featurewise-pill") as Pill;
-  document.body.append(pill);
+  const framed = isFramed(window);
+  let pill: Pill | undefined;
+  if (framed)
+    fitFrame(window);
+  else {
+    definePill();
+    pill = document.createElement("featurewise-pill") as Pill;
+    document.body.append(pill);
+  }
 
   // Beside a demo's pages: what it is, its story so far, and who the visitor can be. Where there are demos,
   // the shell is their site, with a bar across the top, and the panel is a sidebar on the left.
@@ -48,7 +56,7 @@ async function main(): Promise<void> {
 
   const shell = new Shell({
     config, auth, main, toaster: toasts,
-    needsSignIn: () => pill.openMenu(),
+    needsSignIn: () => pill?.openMenu(),
     onPlace: place => {
       const service = place.kind === "service" ? place.service : undefined;
       const view = service === undefined ? undefined
@@ -56,10 +64,10 @@ async function main(): Promise<void> {
       renderDemoPanel(panel, demos, auth, place, link => void shell.runAndReload(link, "Started again from the beginning."), view);
       if (demos.length)
         renderDemoBar(bar, config, place);
-      pill.showingService(place.kind === "service" ? place.service : undefined);
+      pill?.showingService(place.kind === "service" ? place.service : undefined);
     }
   });
-  pill.attach(auth, () => void shell.openServices(), demos);
+  pill?.attach(auth, () => void shell.openServices(), demos);
   // What a user may do decides which links they're offered, so a new user sees the page afresh.
   auth.onChange(() => void shell.load());
   await shell.start();

@@ -13,6 +13,7 @@ The shell is plain TypeScript with no framework and no runtime dependencies, so 
 - **Results.** A result is `application/json`. The shell asks the module to render it, and if the module has no handler, renders it generically: every value as nested lists, and every link as a button named after its property, such as `LinkToDelete`. A button opens the link's JSON to edit and follow. A field still to be supplied shows as null, and you type over it.
 - **Errors** are `application/problem+json`, which the shell handles itself, leaving the page as it was: 401 asks you to sign in, 403 says you may not, a 5xx or no answer says something went wrong, and anything else shows the problem's detail.
 - **The pill,** top right until you drag it, shows who's signed in, with a menu to switch user or log out (on a demo's pages, only that demo's personas; elsewhere, every persona under its demo's title), and a cog that opens `/_shell/services`, listing each service's backend. There, each module's rendering can be turned off, to see the service as the generic shell shows it. The browser remembers the choice.
+- **In a frame,** as on a page of featurewise.dev, the shell shows no pill, since nobody signs in inside someone else's page, and leaves the margins and background to the page around it. Whenever its height changes, it posts `{ type: "featurewise:height", height }` to the parent, so the page can size the frame to fit. The page should check that the message comes from the shell's origin. Pages may frame the shell only where its distribution allows (`frame_ancestors`, below).
 
 ## The module contract
 
@@ -82,6 +83,8 @@ A persona with a `demo` belongs to that demo, and no persona id may appear twice
 
 - a private S3 bucket for the shell's files, `services.json`, which it writes from those inputs, and each service's module, which the service uploads under `modules/<id>/`;
 - one CloudFront distribution that serves them, and routes `/api/<id>/*` to each service's UI backend with the prefix taken off and nothing cached, so the browser only ever talks to one origin. A CloudFront function sends any address that isn't a file to `index.html`.
+
+An environment may name the `frame_ancestors`, the origins whose pages may show the shell in a frame, such as `["https://featurewise.dev"]`. The shell's pages carry them as `Content-Security-Policy: frame-ancestors`. With none, they say `frame-ancestors 'none'`, and no page may frame the shell.
 
 An environment may also give it a `domain`: a host name, such as `demos.featurewise.dev`, and an ACM certificate for it in us-east-1. The distribution then answers to that name, and the outputs use it. The environment owns the DNS, so it validates the certificate and makes the alias records itself.
 

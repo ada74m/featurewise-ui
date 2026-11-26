@@ -16,6 +16,9 @@
 
 body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(--fw-background); }
 #featurewise { max-width: 60rem; margin: 0 auto; padding: 3.5rem 1.5rem 2rem; }
+/* In a frame, the page around it gives the margins and the background, and there's no pill to clear. */
+.fw-framed body { background: transparent; }
+.fw-framed #featurewise { max-width: none; margin: 0; padding: 0 0 var(--fw-space-2); }
 
 /* Plain elements. Each rule is wrapped in :where(), so any class, or any rule of a module's, outranks it. */
 :where(h1, h2) { font-family: var(--fw-font-heading); font-weight: 700; color: var(--fw-brand); }

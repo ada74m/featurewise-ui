@@ -149,6 +149,19 @@ data "aws_cloudfront_origin_request_policy" "all_but_host" {
   name = "Managed-AllViewerExceptHostHeader"
 }
 
+# Which pages may show the shell in a frame: those the environment names, or none, so that no other site
+# can frame the shell to trick its users into clicking.
+resource "aws_cloudfront_response_headers_policy" "pages" {
+  name = "${var.name_prefix}-ui-pages"
+
+  security_headers_config {
+    content_security_policy {
+      content_security_policy = "frame-ancestors ${length(var.frame_ancestors) == 0 ? "'none'" : join(" ", var.frame_ancestors)}"
+      override                = true
+    }
+  }
+}
+
 resource "aws_cloudfront_distribution" "shell" {
   enabled             = true
   comment             = "${var.name_prefix} UI shell"
@@ -195,12 +208,13 @@ resource "aws_cloudfront_distribution" "shell" {
   }
 
   default_cache_behavior {
-    target_origin_id       = "shell"
-    viewer_protocol_policy = "redirect-to-https"
-    allowed_methods        = ["GET", "HEAD"]
-    cached_methods         = ["GET", "HEAD"]
-    cache_policy_id        = data.aws_cloudfront_cache_policy.optimized.id
-    compress               = true
+    target_origin_id           = "shell"
+    viewer_protocol_policy     = "redirect-to-https"
+    allowed_methods            = ["GET", "HEAD"]
+    cached_methods             = ["GET", "HEAD"]
+    cache_policy_id            = data.aws_cloudfront_cache_policy.optimized.id
+    response_headers_policy_id = aws_cloudfront_response_headers_policy.pages.id
+    compress                   = true
 
     function_association {
       event_type   = "viewer-request"

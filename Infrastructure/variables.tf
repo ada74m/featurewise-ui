@@ -62,3 +62,14 @@ variable "domain" {
   })
   default = null
 }
+
+variable "frame_ancestors" {
+  description = "The origins whose pages may show the shell in a frame, such as [\"https://featurewise.dev\"]. The shell's pages say so in their Content-Security-Policy. With none, no page may frame the shell."
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for origin in var.frame_ancestors : can(regex("^https://[a-z0-9.-]+(:[0-9]+)?$", origin))])
+    error_message = "A frame ancestor is an https origin, such as https://featurewise.dev, with no path."
+  }
+}
