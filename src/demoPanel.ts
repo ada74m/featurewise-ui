@@ -50,8 +50,8 @@ export function renderDemoPanel(
   if (demo.title) {
     const title = make("div", "fw-demo-title");
     title.append(make("strong", undefined, demo.title));
-    if (demo.chapter)
-      title.append(make("span", "fw-demo-chapter", `Chapter ${demo.chapter}`));
+    if (demo.topic)
+      title.append(make("span", "fw-demo-topic", demo.topic));
     parts.push(title);
   }
 

@@ -49,7 +49,7 @@ variable "personas" {
 }
 
 variable "demos" {
-  description = "The demos, where a service has them, as the demos service's demos.json lists them: each with its id, the first part of its addresses, its title, chapter, text (about, storySoFar, tryThis), personas, and reset link. The shell becomes their site: a bar linking to each, a home page listing them, and each one's text beside its pages, with its personas."
+  description = "The demos, where a service has them, as the demos service's demos.json lists them: each with its id, the first part of its addresses, its title, topic, text (about, storySoFar, tryThis), personas, and reset link. The shell becomes their site: a bar linking to each, a home page listing them, and each one's text beside its pages, with its personas."
   type        = any
   default     = []
 }

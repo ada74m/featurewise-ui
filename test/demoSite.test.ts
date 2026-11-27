@@ -8,7 +8,7 @@ describe("the demos' site", () => {
     title: "Featurewise demos",
     services: {},
     demos: [
-      { id: "lost-property", title: "The lost property office", chapter: "3. Links", about: ["A railway station's lost property office.", "More."] },
+      { id: "lost-property", title: "The lost property office", topic: "Links", about: ["A railway station's lost property office.", "More."] },
       { id: "box-office", title: "The box office" }
     ]
   };
@@ -36,13 +36,13 @@ describe("the demos' site", () => {
     expect(links()[0]![2]).toBe("page");
   });
 
-  it("lists each demo on the home page, with its chapter and what it's about", () => {
+  it("lists each demo on the home page, with its topic and what it's about", () => {
     renderDemoHome(element, config.title, config.demos!);
 
     expect(element.querySelector("h1")!.textContent).toBe("Featurewise demos");
     const cards = [...element.querySelectorAll(".fw-home-card")];
     expect(cards).toHaveLength(2);
-    expect(cards[0]!.textContent).toBe("The lost property officeChapter 3. LinksA railway station's lost property office.");
+    expect(cards[0]!.textContent).toBe("The lost property officeLinksA railway station's lost property office.");
     expect(links().map(([text, href]) => [text, href])).toEqual([
       ["The lost property office", "/lost-property/"],
       ["The box office", "/box-office/"]

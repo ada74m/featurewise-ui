@@ -30,7 +30,7 @@ export function renderDemoBar(bar: HTMLElement, config: ShellConfig, place: Plac
   bar.replaceChildren(home, nav);
 }
 
-// The home page: each demo, with its chapter and what it's about.
+// The home page: each demo, with its topic and what it's about.
 export function renderDemoHome(element: HTMLElement, title: string | undefined, demos: DemoConfig[]): () => void {
   const document = element.ownerDocument;
   const page = document.createElement("section");
@@ -49,11 +49,11 @@ export function renderDemoHome(element: HTMLElement, title: string | undefined, 
     link.textContent = demo.title ?? demo.id;
     name.append(link);
     card.append(name);
-    if (demo.chapter) {
-      const chapter = document.createElement("p");
-      chapter.className = "fw-home-chapter";
-      chapter.textContent = `Chapter ${demo.chapter}`;
-      card.append(chapter);
+    if (demo.topic) {
+      const topic = document.createElement("p");
+      topic.className = "fw-home-topic";
+      topic.textContent = demo.topic;
+      card.append(topic);
     }
     if (demo.about?.[0]) {
       const about = document.createElement("p");

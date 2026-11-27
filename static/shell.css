@@ -86,7 +86,7 @@ body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(-
 .fw-home-card { background: var(--fw-surface); border: 1px solid var(--fw-border); border-radius: var(--fw-radius);
                 padding: var(--fw-space-4); }
 .fw-home-card p { margin: var(--fw-space-2) 0 0; }
-.fw-home-card .fw-home-chapter { color: var(--fw-muted); margin-top: 0; }
+.fw-home-card .fw-home-topic { color: var(--fw-muted); margin-top: 0; }
 .fw-home-card h2 a { text-decoration: none; }
 
 /* A demo's text, its personas, its view and its reset. */
@@ -95,7 +95,7 @@ body { margin: 0; font: var(--fw-font); color: var(--fw-text); background: var(-
 :not(.fw-site) > .fw-demo:not([hidden]) + #featurewise { padding-top: 1rem; }
 .fw-demo-title { font-size: 1.1rem; }
 .fw-demo-title strong { font-family: var(--fw-font-heading); color: var(--fw-brand); }
-.fw-demo-chapter { display: block; color: var(--fw-muted); font-size: var(--fw-size-small); }
+.fw-demo-topic { display: block; color: var(--fw-muted); font-size: var(--fw-size-small); }
 .fw-demo-about { margin: .25rem 0 .5rem; }
 .fw-demo-fold { margin: .25rem 0; }
 .fw-demo-fold summary { cursor: pointer; color: var(--fw-muted); }

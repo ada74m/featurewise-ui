@@ -9,7 +9,7 @@ describe("the demo panel", () => {
   const demos: DemoConfig[] = [{
     id: "lost-property",
     title: "The lost property office",
-    chapter: "1. Features",
+    topic: "Features",
     about: ["A railway station's lost property office."],
     storySoFar: ["Six things are waiting to be claimed."],
     tryThis: ["As the clerk, hand in an umbrella.", "Then, as the Traveller, claim it."],
@@ -41,7 +41,7 @@ describe("the demo panel", () => {
 
     expect(panel.hidden).toBe(false);
     expect(panel.querySelector(".fw-demo-title strong")!.textContent).toBe("The lost property office");
-    expect(panel.querySelector(".fw-demo-chapter")!.textContent).toBe("Chapter 1. Features");
+    expect(panel.querySelector(".fw-demo-topic")!.textContent).toBe("Features");
     expect(panel.textContent).toContain("A railway station's lost property office.");
     expect(panel.textContent).toContain("Six things are waiting to be claimed.");
   });

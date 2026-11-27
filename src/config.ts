@@ -27,7 +27,7 @@ export interface Persona {
 export interface DemoConfig {
   id: string;
   title?: string;
-  chapter?: string;
+  topic?: string;
   about?: string[];
   storySoFar?: string[];
   tryThis?: string[];
